@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Etsy Sync</title>
+    <style>
+      :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      body { margin: 0; width: 420px; }
+      .wrap { padding: 12px; }
+      h1 { font-size: 14px; margin: 0 0 10px; }
+
+      .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+      .hidden { display: none; }
+      .muted { color: #6b7280; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+      .link { color: #2563eb; text-decoration: underline; cursor: pointer; }
+      .ok { color: #065f46; }
+      .error { color: #b91c1c; }
+
+      .line { display: flex; gap: 8px; align-items: center; }
+      input {
+        flex: 1;
+        box-sizing: border-box;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 8px 10px;
+        outline: none;
+      }
+      input:focus { border-color: #2563eb; }
+
+      button {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+      button:hover { background: #f9fafb; }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+      .status { margin-top: 6px; font-size: 12px; word-break: break-word; }
+      .footer { margin: 10px 0 0; font-size: 11px; word-break: break-all; }
+
+      .actions { display: flex; gap: 8px; margin-top: 10px; }
+      .actions button { flex: 1; }
+
+      .order {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top: 10px;
+      }
+      .row { display: flex; gap: 8px; align-items: baseline; }
+      .label { width: 92px; color: #374151; }
+      .value { flex: 1; word-break: break-word; }
+      .pill {
+        display: inline-block;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+        margin-right: 6px;
+      }
+      .pill.error { border-color: #fca5a5; color: #b91c1c; }
+      .pill.ok { border-color: #86efac; color: #065f46; }
+
+      .orderActions { display: flex; gap: 8px; margin-top: 10px; }
+      .orderActions button { flex: 1; }
+
+      .small { font-size: 12px; }
+      .nowrap { white-space: nowrap; }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <h1>Etsy → Teeinblue Sync</h1>
+
+      <div id="teeinblueAPIKey" class="card">
+        <div class="line">
+          <div class="muted nowrap">Teeinblue API Key:</div>
+          <input id="apiKeyInput" type="text" placeholder="Enter API Key" />
+          <button id="submit" type="submit">Sync</button>
+        </div>
+        <div id="teeinblueStatus" class="muted status"></div>
+      </div>
+
+      <div id="stateNotOnTarget" class="card hidden">
+        <p class="muted" style="margin:0 0 8px;">
+          You’re not on Etsy seller orders page.
+        </p>
+        <a id="redirectLink" class="link" href="#">redirect to Etsy Orders</a>
+        <p class="footer muted" style="margin-top:8px;">
+          Target: <span class="mono">www.etsy.com/your/shops/.../orders</span>
+        </p>
+      </div>
+
+      <div id="stateOnTarget" class="card hidden">
+        <div class="muted small">
+          This build uses <b>mock extracted orders</b> (DOM extraction to be implemented later).
+        </div>
+
+        <div class="actions">
+          <button id="scanBtn" type="button">Scan & Compare</button>
+          <button id="syncAllBtn" type="button">Sync all</button>
+        </div>
+
+        <div id="mainStatus" class="footer muted"></div>
+        <div id="ordersList"></div>
+      </div>
+
+      <p id="currentUrl" class="footer muted"></p>
+    </div>
+
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Etsy → Teeinblue Sync (Staging)",
+  "version": "1.0.1",
+  "description": "Compare Etsy extracted order info vs Teeinblue; sync missing/different email + address",
+  "action": {
+    "default_title": "Etsy Sync",
+    "default_popup": "popup/index.html",
+    "default_icon": "assets/icons/default_icon.png"
+  },
+  "icons": {
+    "16": "assets/icons/default_icon.png",
+    "32": "assets/icons/default_icon.png",
+    "48": "assets/icons/default_icon.png",
+    "128": "assets/icons/default_icon.png"
+  },
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://www.etsy.com/*",
+    "https://staging-api.teeinblue.com/*",
+    "https://api.teeinblue.com/*"
+  ]
+}
