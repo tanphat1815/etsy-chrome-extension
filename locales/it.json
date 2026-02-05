@@ -1,0 +1,67 @@
+{
+  "popup": {
+    "title": "Sincronizzazione Etsy → Teeinblue",
+    "language_selector": {
+      "aria_label": "Seleziona la lingua"
+    },
+    "api_key": {
+      "label": "Chiave API Teeinblue:",
+      "placeholder": "Inserisci la chiave API",
+      "button_sync": "Sincronizza"
+    },
+    "not_on_target": {
+      "message": "Non sei nella pagina degli ordini del venditore su Etsy.",
+      "redirect": "Apri la pagina Orders di Etsy",
+      "target_label": "Destinazione:"
+    },
+    "on_target": {
+      "note_html": "I dati vengono presi dalla tua pagina Orders su Etsy"
+    },
+    "buttons": {
+      "scan_compare": "Scansiona e confronta",
+      "sync_all": "Sincronizza tutto"
+    },
+    "current_tab": "Scheda corrente: {{url}}",
+    "no_active_tab": "Nessuna scheda attiva"
+  },
+  "orders": {
+    "labels": {
+      "order_id": "ID ordine",
+      "extracted": "Dati da Etsy",
+      "teeinblue": "Teeinblue",
+      "diff_keys": "Campi diversi"
+    },
+    "buttons": {
+      "sync": "Sincronizza"
+    },
+    "pills": {
+      "email_override": "Aggiorna e-mail",
+      "email_ok": "E-mail OK",
+      "address_override": "Aggiorna indirizzo ({{count}})",
+      "address_ok": "Indirizzo OK"
+    }
+  },
+  "status": {
+    "api_key_required": "Inserisci prima la chiave API Teeinblue.",
+    "checking_connection": "Verifica della connessione (ordini di staging)...",
+    "connected": "Connesso ✅",
+    "not_connected_http": "Non connesso ❌ (HTTP {{status}})",
+    "request_failed": "Richiesta non riuscita ❌ ({{message}})",
+    "scanning": "Scansione di Etsy (mock) e confronto con Teeinblue...",
+    "no_orders_need_sync": "Nessun ordine da sincronizzare (in base ai dati estratti attuali).",
+    "found_orders_need_sync": "Trovati {{count}} ordini da sincronizzare.",
+    "scan_failed": "Scansione non riuscita: {{message}}",
+    "syncing_all": "Sincronizzazione di tutti gli ordini...",
+    "sync_all_completed": "Sincronizzazione di tutti gli ordini completata.",
+    "order": {
+      "nothing_to_sync": "Niente da sincronizzare.",
+      "syncing": "Sincronizzazione in corso...",
+      "sync_failed_http": "Sincronizzazione non riuscita ❌ (HTTP {{status}})",
+      "put_ok_no_body": "PUT ok ✅ (nessun corpo di risposta da verificare)",
+      "all_synced": "Tutti i campi sincronizzati ✅",
+      "email_synced_address_need": "E-mail sincronizzata ✅, indirizzo da sincronizzare ❌",
+      "email_need_address_synced": "E-mail da sincronizzare ❌, indirizzo sincronizzato ✅",
+      "email_address_need": "E-mail e indirizzo da sincronizzare ❌"
+    }
+  }
+}

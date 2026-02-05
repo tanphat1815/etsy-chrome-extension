@@ -16,6 +16,8 @@ export function getDomRefs() {
     scanBtn: document.getElementById("scanBtn"),
     syncAllBtn: document.getElementById("syncAllBtn"),
     mainStatus: document.getElementById("mainStatus"),
-    ordersList: document.getElementById("ordersList")
+    ordersList: document.getElementById("ordersList"),
+
+    langSel: document.getElementById("languageSelect"),
   };
 }

@@ -213,3 +213,9 @@ input:focus {
 .nowrap {
   white-space: nowrap;
 }
+
+.card#stateOnTarget {
+  max-height: 350px;
+  overflow: scroll;
+  margin-bottom: 0;
+}

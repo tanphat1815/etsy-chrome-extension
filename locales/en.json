@@ -1,0 +1,67 @@
+{
+  "popup": {
+    "title": "Etsy → Teeinblue Sync",
+    "language_selector": {
+      "aria_label": "Select language"
+    },
+    "api_key": {
+      "label": "Teeinblue API Key:",
+      "placeholder": "Enter API Key",
+      "button_sync": "Sync"
+    },
+    "not_on_target": {
+      "message": "You’re not on Etsy seller orders page.",
+      "redirect": "Redirect to Etsy Orders",
+      "target_label": "Target:"
+    },
+    "on_target": {
+      "note_html": "DOM Extracted orders on Etsy"
+    },
+    "buttons": {
+      "scan_compare": "Scan & Compare",
+      "sync_all": "Sync all"
+    },
+    "current_tab": "Current tab: {{url}}",
+    "no_active_tab": "No active tab"
+  },
+  "orders": {
+    "labels": {
+      "order_id": "Order ID",
+      "extracted": "Extracted",
+      "teeinblue": "Teeinblue",
+      "diff_keys": "Diff Keys"
+    },
+    "buttons": {
+      "sync": "Sync"
+    },
+    "pills": {
+      "email_override": "Email Override",
+      "email_ok": "Email OK",
+      "address_override": "Address Override ({{count}})",
+      "address_ok": "Address OK"
+    }
+  },
+  "status": {
+    "api_key_required": "Please input Teeinblue API Key first.",
+    "checking_connection": "Checking connection (staging orders)...",
+    "connected": "Connected ✅",
+    "not_connected_http": "Not connected ❌ (HTTP {{status}})",
+    "request_failed": "Request failed ❌ ({{message}})",
+    "scanning": "Scanning Etsy (mock) and comparing with Teeinblue...",
+    "no_orders_need_sync": "No orders need syncing (based on current extract).",
+    "found_orders_need_sync": "Found {{count}} order(s) needing sync.",
+    "scan_failed": "Scan failed: {{message}}",
+    "syncing_all": "Syncing all orders...",
+    "sync_all_completed": "Sync all completed.",
+    "order": {
+      "nothing_to_sync": "Nothing to sync.",
+      "syncing": "Syncing...",
+      "sync_failed_http": "Sync failed ❌ (HTTP {{status}})",
+      "put_ok_no_body": "PUT ok ✅ (no response body to verify)",
+      "all_synced": "All field(s) synced ✅",
+      "email_synced_address_need": "Email synced ✅, Address needs sync ❌",
+      "email_need_address_synced": "Email needs sync ❌, Address synced ✅",
+      "email_address_need": "Email and Address need sync ❌"
+    }
+  }
+}

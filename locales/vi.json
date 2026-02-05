@@ -1,0 +1,67 @@
+{
+  "popup": {
+    "title": "Etsy → Teeinblue Sync",
+    "language_selector": {
+      "aria_label": "Chọn ngôn ngữ"
+    },
+    "api_key": {
+      "label": "Teeinblue API Key:",
+      "placeholder": "Nhập API Key",
+      "button_sync": "Đồng bộ"
+    },
+    "not_on_target": {
+      "message": "Bạn chưa ở trang đơn hàng của người bán trên Etsy.",
+      "redirect": "Mở trang Orders của Etsy",
+      "target_label": "Đích:"
+    },
+    "on_target": {
+      "note_html": "Data được lấy từ trang orders trên Etsy của bạn"
+    },
+    "buttons": {
+      "scan_compare": "Quét & So sánh",
+      "sync_all": "Đồng bộ tất cả"
+    },
+    "current_tab": "Tab hiện tại: {{url}}",
+    "no_active_tab": "Không có tab đang active"
+  },
+  "orders": {
+    "labels": {
+      "order_id": "Order ID",
+      "extracted": "Dữ liệu từ Etsy",
+      "teeinblue": "Teeinblue",
+      "diff_keys": "Trường khác"
+    },
+    "buttons": {
+      "sync": "Đồng bộ"
+    },
+    "pills": {
+      "email_override": "Cập nhật Email",
+      "email_ok": "Email OK",
+      "address_override": "Cập nhật Địa chỉ ({{count}})",
+      "address_ok": "Địa chỉ OK"
+    }
+  },
+  "status": {
+    "api_key_required": "Vui lòng nhập Teeinblue API Key trước.",
+    "checking_connection": "Đang kiểm tra kết nối (staging orders)...",
+    "connected": "Đã kết nối ✅",
+    "not_connected_http": "Chưa kết nối ❌ (HTTP {{status}})",
+    "request_failed": "Request thất bại ❌ ({{message}})",
+    "scanning": "Đang quét Etsy (mock) và so sánh với Teeinblue...",
+    "no_orders_need_sync": "Không có order nào cần đồng bộ (theo dữ liệu extract hiện tại).",
+    "found_orders_need_sync": "Tìm thấy {{count}} order cần đồng bộ.",
+    "scan_failed": "Quét thất bại: {{message}}",
+    "syncing_all": "Đang đồng bộ tất cả orders...",
+    "sync_all_completed": "Đã đồng bộ xong tất cả.",
+    "order": {
+      "nothing_to_sync": "Không có gì để đồng bộ.",
+      "syncing": "Đang đồng bộ...",
+      "sync_failed_http": "Đồng bộ thất bại ❌ (HTTP {{status}})",
+      "put_ok_no_body": "PUT ok ✅ (không có response body để verify)",
+      "all_synced": "Đã đồng bộ tất cả field(s) ✅",
+      "email_synced_address_need": "Email đã đồng bộ ✅, Address cần đồng bộ ❌",
+      "email_need_address_synced": "Email cần đồng bộ ❌, Address đã đồng bộ ✅",
+      "email_address_need": "Email và Address cần đồng bộ ❌"
+    }
+  }
+}

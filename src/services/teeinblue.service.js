@@ -1,5 +1,5 @@
-import { URLS } from "../config/urls.js";
-import { readResponseBody } from "../utils/http.js";
+import { URLS } from '../config/urls.js';
+import { readResponseBody } from '../utils/http.js';
 
 /**
  * Teeinblue API Service.
@@ -10,12 +10,12 @@ import { readResponseBody } from "../utils/http.js";
  * @param {string} token Bearer token (raw)
  * @returns {Promise<{ok: boolean, status: number, data: any}>}
  */
-export async function checkConnectionByListOrders(token) {
+export async function checkConnectionByListOrders (token) {
   const res = await fetch(URLS.TEEINBLUE.HEALTH_BY_LIST_ORDERS, {
-    method: "GET",
+    method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      Accept: "*/*"
+      Accept: '*/*'
     }
   });
 
@@ -29,12 +29,12 @@ export async function checkConnectionByListOrders(token) {
  * @param {string} platformOrderId Etsy order id
  * @returns {Promise<{ok: boolean, status: number, data: any}>}
  */
-export async function getEtsyOrderById(token, platformOrderId) {
+export async function getEtsyOrderById (token, platformOrderId) {
   const res = await fetch(URLS.TEEINBLUE.GET_ORDER_BY_ID(platformOrderId), {
-    method: "GET",
+    method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      Accept: "*/*"
+      Accept: '*/*'
     }
   });
 
@@ -50,12 +50,12 @@ export async function getEtsyOrderById(token, platformOrderId) {
  * @param {{email?: string, shipping_address?: object}} payload Update payload
  * @returns {Promise<{ok: boolean, status: number, data: any}>}
  */
-export async function updateEtsyOrderById(token, platformOrderId, payload) {
+export async function updateEtsyOrderById (token, platformOrderId, payload) {
   const res = await fetch(URLS.TEEINBLUE.UPDATE_ORDER_BY_ID(platformOrderId), {
-    method: "PUT",
+    method: 'PUT',
     headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify(payload)

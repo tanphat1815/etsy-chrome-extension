@@ -1,57 +1,82 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Etsy Sync</title>
-    <link rel="stylesheet" href="../assets/styles/poppup.css" type="text/css">
-  </head>
 
-  <body>
-    <div class="wrap">
-      <div class="header">
-          <img src="../assets/icons/white_icon.svg" alt="Logo" width="24" height="24">
-          <h1>Etsy → Teeinblue Sync</h1>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Etsy Sync</title>
+  <link rel="stylesheet" href="../assets/styles/poppup.css" type="text/css">
+  <link rel="stylesheet" href="../assets/styles/lang-selector.css" type="text/css">
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <img src="../assets/icons/white_icon.svg" alt="Logo" width="24" height="24">
+      <h1 data-i18n="popup.title">Etsy → Teeinblue Sync</h1>
+      <div class="languages-selector">
+        <!--  Languague selector - start -->
+        <div class="languages-selector__control">
+          <select id="languageSelect" class="languages-selector__select" aria-label="Select language" data-i18n-attr="aria-label:popup.language_selector.aria_label">
+            <option value="EN" selected>EN</option>
+            <option value="FR">FR</option>
+            <option value="DE">DE</option>
+            <option value="IT">IT</option>
+            <option value="ES">ES</option>
+            <option value="PT">PT</option>
+            <option value="VI">VI</option>
+          </select>
+
+          <span class="languages-selector__chevron" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+        </div>
+        <!--  Languague selector - end -->
       </div>
-
-      <div class="content">
-        <div id="teeinblueAPIKey" class="card">
-          <div class="line">
-            <div class="muted nowrap">Teeinblue API Key:</div>
-            <input id="apiKeyInput" type="text" placeholder="Enter API Key" />
-            <button class="btn btn-secondary" id="submit" type="submit">Sync</button>
-          </div>
-          <div id="teeinblueStatus" class="muted status"></div>
-        </div>
-
-        <div id="stateNotOnTarget" class="card hidden">
-          <p class="muted" style="margin:0 0 8px;">
-            You’re not on Etsy seller orders page.
-          </p>
-          <a id="redirectLink" class="link" href="#">redirect to Etsy Orders</a>
-          <p class="footer muted" style="margin-top:8px;">
-            Target: <span class="mono">www.etsy.com/your/shops/.../orders</span>
-          </p>
-        </div>
-
-        <div id="stateOnTarget" class="card hidden">
-          <div class="muted small">
-            This build uses <b>mock extracted orders</b> (DOM extraction to be implemented later).
-          </div>
-
-          <div class="actions">
-            <button class="btn btn-secondary" id="scanBtn" type="button">Scan & Compare</button>
-            <button class="btn btn-primary" id="syncAllBtn" type="button">Sync all</button>
-          </div>
-
-          <div id="mainStatus" class="footer muted"></div>
-          <div id="ordersList"></div>
-        </div>
-      </div>
-
-      <p id="currentUrl" class="footer muted"></p>
     </div>
 
-    <script type="module" src="./index.js"></script>
-  </body>
+    <div class="content">
+      <div id="teeinblueAPIKey" class="card">
+        <div class="line">
+          <div class="muted nowrap" data-i18n="popup.api_key.label">Teeinblue API Key:</div>
+          <input id="apiKeyInput" type="text" placeholder="Enter API Key" data-i18n-attr="placeholder:popup.api_key.placeholder" />
+          <button class="btn btn-secondary" id="submit" type="submit" data-i18n="popup.api_key.button_sync">Sync</button>
+        </div>
+        <div id="teeinblueStatus" class="muted status"></div>
+      </div>
+
+      <div id="stateNotOnTarget" class="card hidden">
+        <p class="muted" style="margin:0 0 8px;" data-i18n="popup.not_on_target.message">
+          You’re not on Etsy seller orders page.
+        </p>
+        <a id="redirectLink" class="link" href="#" data-i18n="popup.not_on_target.redirect">redirect to Etsy Orders</a>
+        <p class="footer muted" style="margin-top:8px;">
+          <span data-i18n="popup.not_on_target.target_label">Target:</span>
+          <span class="mono">www.etsy.com/your/shops/.../orders</span>
+        </p>
+      </div>
+
+      <div id="stateOnTarget" class="card hidden">
+        <div class="muted small" data-i18n-html="popup.on_target.note_html">
+          DOM Extracted orders on Etsy
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" id="scanBtn" type="button" data-i18n="popup.buttons.scan_compare">Scan & Compare</button>
+          <button class="btn btn-primary" id="syncAllBtn" type="button" data-i18n="popup.buttons.sync_all">Sync all</button>
+        </div>
+
+        <div id="mainStatus" class="footer muted"></div>
+        <div id="ordersList"></div>
+      </div>
+    </div>
+
+    <p id="currentUrl" class="footer muted"></p>
+  </div>
+
+  <script type="module" src="./index.js"></script>
+</body>
+
 </html>
