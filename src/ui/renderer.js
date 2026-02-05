@@ -74,7 +74,7 @@ export function renderOrderCard(item, onSyncClick) {
     </div>
 
     <div class="orderActions">
-      <button type="button" data-role="btn-sync" ${(!item.emailNeedsSync && !item.addrNeedsSync) ? "disabled" : ""}>
+      <button class="btn btn-secondary" type="button" data-role="btn-sync" ${(!item.emailNeedsSync && !item.addrNeedsSync) ? "disabled" : ""}>
         Sync
       </button>
     </div>

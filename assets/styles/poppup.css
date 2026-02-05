@@ -1,0 +1,215 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  width: 420px;
+}
+
+.wrap {
+  background-color: #f0f5ff;
+}
+
+.header {
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background-color: #02277c;
+  color: #ffffff;
+}
+
+.header img {
+  width: 24px;
+  height: 24px;
+}
+
+h1 {
+  font-size: 14px;
+}
+
+.content {
+  padding: 10px;
+}
+
+.card {
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 9px #0000001a;
+}
+
+span:empty,
+p:empty,
+div:empty,
+.hidden {
+  display: none;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.link {
+  color: #1350de;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ok {
+  color: #065f46;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.line {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+input {
+  flex: 1;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color .15s ease-in-out;
+}
+
+input:focus {
+  border-color: #1350de;
+}
+
+.btn {
+  border: 1px solid #1350de;
+  background-color: #ffffff;
+  color: #1350de;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all .15s ease-in-out;
+}
+
+.btn:hover {
+  background-color: #1350de;
+  color: #ffffff;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.btn-primary {
+  border-color: #1350de;
+  background-color: #1350de;
+  color: #ffffff;
+}
+
+.btn.btn-primary:hover,
+.btn.btn-primary:focus {
+  border-color: #0d25bf;
+  background-color: #0d25bf;
+}
+
+.status {
+  margin-top: 6px;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.footer {
+  margin: 0;
+  padding: 10px;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.card .footer {
+  padding-left: 0;
+  padding-bottom: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.actions button {
+  flex: 1;
+}
+
+.order {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.label {
+  width: 92px;
+  color: #374151;
+}
+
+.value {
+  flex: 1;
+  word-break: break-word;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  margin-right: 6px;
+}
+
+.pill.error {
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.pill.ok {
+  border-color: #86efac;
+  color: #065f46;
+}
+
+.orderActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.orderActions button {
+  flex: 1;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
