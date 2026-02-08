@@ -212,6 +212,9 @@ export function updateOrderCardUI(item) {
   const tbEmailEl = card.querySelector('[data-role="tb-email"]');
   const btn = card.querySelector('[data-role="btn-sync"]');
 
+  console.log(item);
+
+  /** Update Pill status - START **/
   if (pillEmail) {
     pillEmail.className = `pill ${item.emailNeedsSync ? "error" : "ok"}`;
     pillEmail.textContent = item.emailNeedsSync
@@ -229,6 +232,11 @@ export function updateOrderCardUI(item) {
       )
       : t("orders.pills.address_ok", {}, "Address OK");
   }
+  /** Update Pill status - END **/
+
+  /** Update Sync status (card footer) - START **/
+
+  /** Update Sync status (card footer) - END **/
 
   if (diffEl) {
     diffEl.textContent = item.diffAddressKeys?.length ? item.diffAddressKeys.join(", ") : "—";

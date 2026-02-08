@@ -13,8 +13,16 @@ import {
 } from '../src/ui/renderer.js';
 
 import {
+  buildPageKey,
+  tokenFingerprint,
+  readBootCache,
+  writeBootCache,
+  readUiSnapshot,
+  writeUiSnapshot
+} from '../src/cache/index.cache.js';
+
+import {
   isOnSellerOrdersPage,
-  openSellerOrdersInNewTab,
   extractOrdersMock
 } from '../src/services/etsy.service.js';
 import {
@@ -36,8 +44,11 @@ const els = getDomRefs();
 const app = {
   token: '',
   connected: false,
-  orders: [] // items currently rendered + their sync state
+  orders: [], // items currently rendered + their sync state
+  pageKey: ''
 };
+
+window.app = app; // for debug, NÀO XONG NHỚ NHẮC T XOÁ CÁI NÀY :v
 
 let connectTimer = null;
 let scanAbort = null;
@@ -132,19 +143,29 @@ async function setLanguage () {
   });
 }
 
+/**
+ * Refreshes the target view by querying the active tab and determining if it's on a seller orders page.
+ *
+ * @async
+ * @function refreshTargetView
+ * @returns {Promise<{url: string, onTarget: boolean, pageKey: string}>} An object containing:
+ *   - url: The URL of the active tab, or empty string if no active tab
+ *   - onTarget: Boolean indicating if the current tab is on a seller orders page
+ *   - pageKey: A generated page key based on the URL and page type
+ */
 async function refreshTargetView () {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const url = tab?.url || '';
 
-  setText(
-    els.currentUrl,
-    url
-      ? t('popup.current_tab', { url }, `Current tab: ${url}`)
-      : t('popup.no_active_tab', {}, 'No active tab')
-  );
+  setText(els.currentUrl, url ? `Current tab: ${url}` : 'No active tab');
 
   const onTarget = isOnSellerOrdersPage(url);
   showTargetState(els.stateNotOnTarget, els.stateOnTarget, onTarget);
+
+  const pageKey = buildPageKey(url, isOnSellerOrdersPage);
+  app.pageKey = pageKey;
+
+  return { url, onTarget, pageKey };
 }
 
 async function loadTokenFromStorage () {
@@ -165,16 +186,21 @@ async function checkConnect (token) {
   if (!app.token) {
     app.connected = false;
     setTeeinblueStatus(els.teeinblueStatus, '', 'muted');
+
+    // cache status (avoid re-checking on reopen)
+    await writeBootCache({
+      key: app.pageKey,
+      tokenFp: tokenFingerprint(app.token),
+      teeinblueStatus: { text: '', kind: 'muted' }
+    });
+
+    await saveUiSnapshot();
     return;
   }
 
   setTeeinblueStatus(
     els.teeinblueStatus,
-    t(
-      'status.checking_connection',
-      {},
-      'Checking connection (staging orders)...'
-    ),
+    t('status.checking_connection', {}, 'Checking connection ...'),
     'muted'
   );
 
@@ -185,34 +211,53 @@ async function checkConnect (token) {
     app.connected = !!res.ok;
 
     if (res.ok) {
-      setTeeinblueStatus(
-        els.teeinblueStatus,
-        t('status.connected', {}, 'Connected ✅'),
-        'ok'
-      );
+      const text = t('status.connected', {}, 'Connected ✅');
+      setTeeinblueStatus(els.teeinblueStatus, text, 'ok');
+
+      // cache status (avoid re-checking on reopen)
+      await writeBootCache({
+        key: app.pageKey,
+        tokenFp: tokenFingerprint(app.token),
+        teeinblueStatus: { text, kind: 'ok' }
+      });
+
+      await saveUiSnapshot();
     } else {
-      setTeeinblueStatus(
-        els.teeinblueStatus,
-        t(
-          'status.not_connected_http',
-          { status: res.status },
-          `Not connected ❌ (HTTP ${res.status})`
-        ),
-        'error'
+      const text = t(
+        'status.not_connected_http',
+        { status: res.status },
+        `Not connected ❌ (HTTP ${res.status})`
       );
+      setTeeinblueStatus(els.teeinblueStatus, text, 'error');
+
+      // cache status (avoid re-checking on reopen)
+      await writeBootCache({
+        key: app.pageKey,
+        tokenFp: tokenFingerprint(app.token),
+        teeinblueStatus: { text, kind: 'error' }
+      });
+
+      await saveUiSnapshot();
     }
   } catch (e) {
     console.log('[ConnectCheck] error', e);
     app.connected = false;
-    setTeeinblueStatus(
-      els.teeinblueStatus,
-      t(
-        'status.request_failed',
-        { message: e?.message || String(e) },
-        `Request failed ❌ (${e?.message || String(e)})`
-      ),
-      'error'
+
+    const text = t(
+      'status.request_failed',
+      { message: e?.message || String(e) },
+      `Request failed ❌ (${e?.message || String(e)})`
     );
+    setTeeinblueStatus(els.teeinblueStatus, text, 'error');
+
+    // cache status (avoid re-checking on reopen)
+    await writeBootCache({
+      key: app.pageKey,
+      tokenFp: tokenFingerprint(app.token),
+      teeinblueStatus: { text, kind: 'error' }
+    });
+
+    await saveUiSnapshot();
   }
 }
 
@@ -230,11 +275,7 @@ async function scanAndCompare () {
   if (!token) {
     setMainStatus(
       els.mainStatus,
-      t(
-        'status.api_key_required',
-        {},
-        'Please input Teeinblue API Key first.'
-      ),
+      t('status.api_key_required', {}, 'Please input Teeinblue API Key first.'),
       'error'
     );
     return;
@@ -273,7 +314,12 @@ async function scanAndCompare () {
       const platformId = ex.platform_order_id;
 
       const tb = await getEtsyOrderById(token, platformId);
-      console.log('[GET]', platformId, tb.status, tb.status.toString().startsWith('2') ? tb.data : '__');
+      console.log(
+        '[GET]',
+        platformId,
+        tb.status,
+        tb.status.toString().startsWith('2') ? tb.data : '__'
+      );
 
       if (!tb.ok || !tb.data || typeof tb.data !== 'object') continue;
 
@@ -354,6 +400,7 @@ async function scanAndCompare () {
       'error'
     );
   } finally {
+    await saveUiSnapshot();
     els.scanBtn.disabled = false;
   }
 }
@@ -380,6 +427,7 @@ async function syncSingle (platformOrderId) {
       'muted'
     );
     syncLog(platformOrderId, 'skip', 'skip');
+    await saveUiSnapshot();
     return;
   }
 
@@ -407,6 +455,7 @@ async function syncSingle (platformOrderId) {
       ),
       'error'
     );
+    await saveUiSnapshot();
     return;
   }
 
@@ -426,6 +475,7 @@ async function syncSingle (platformOrderId) {
       ),
       'ok'
     );
+    await saveUiSnapshot();
     return;
   }
 
@@ -495,6 +545,8 @@ async function syncSingle (platformOrderId) {
   els.syncAllBtn.disabled = !app.orders.some(
     x => x.emailNeedsSync || x.addrNeedsSync
   );
+
+  await saveUiSnapshot();
 }
 
 async function syncAll () {
@@ -519,12 +571,14 @@ async function syncAll () {
   els.syncAllBtn.disabled = !app.orders.some(
     x => x.emailNeedsSync || x.addrNeedsSync
   );
+
+  await saveUiSnapshot();
 }
 
 function bindEvents () {
   els.redirectLink.addEventListener('click', async e => {
     e.preventDefault();
-    await openSellerOrdersInNewTab();
+    await chrome.runtime.sendMessage({ type: 'OPEN_ETSY_ORDERS_AND_POPUP' });
     window.close();
   });
 
@@ -539,7 +593,7 @@ function bindEvents () {
     }
   });
 
-  // token "Sync" button: just re-check connect (as before)
+  // token "Sync" button: recheck connection
   els.submitBtn.addEventListener('click', async e => {
     e.preventDefault();
     const token = (els.apiKeyInput.value || '').trim();
@@ -549,13 +603,106 @@ function bindEvents () {
 
   els.scanBtn.addEventListener('click', scanAndCompare);
   els.syncAllBtn.addEventListener('click', syncAll);
-};
+}
+
+function rebindOrderSyncButtons () {
+  // Order card HAS [data-id] from `renderer.js` (wrap.dataset.id)
+  document.querySelectorAll('.order[data-id]').forEach(card => {
+    const id = card.dataset.id;
+    const btn = card.querySelector('[data-role="btn-sync"]');
+    if (!btn) return;
+
+    // avoid adding multiple times if restore + bind again
+    btn.replaceWith(btn.cloneNode(true));
+    const newBtn = card.querySelector('[data-role="btn-sync"]');
+    newBtn.addEventListener('click', () => syncSingle(id));
+  });
+}
+
+async function saveUiSnapshot () {
+  if (!app.pageKey) return;
+
+  await writeUiSnapshot(app.pageKey, {
+    orders: app.orders || [],
+    ordersHtml: els.ordersList?.innerHTML || '',
+    mainStatusText: els.mainStatus?.textContent || '',
+    mainStatusClass: els.mainStatus?.className || '',
+    tbStatusText: els.teeinblueStatus?.textContent || '',
+    tbStatusClass: els.teeinblueStatus?.className || '',
+    syncAllDisabled: !!els.syncAllBtn?.disabled
+  });
+}
+
+async function restoreUiSnapshot () {
+  if (!app.pageKey) return false;
+
+  const snap = await readUiSnapshot(app.pageKey);
+  if (!snap) return false;
+
+  // restore data state for syncSingle()
+  app.orders = Array.isArray(snap.orders) ? snap.orders : [];
+
+  // restore UI
+  if (typeof snap.ordersHtml === 'string') els.ordersList.innerHTML = snap.ordersHtml;
+
+  if (snap.mainStatusClass) els.mainStatus.className = snap.mainStatusClass;
+  if (snap.mainStatusText !== undefined) els.mainStatus.textContent = snap.mainStatusText;
+
+  if (snap.tbStatusClass) els.teeinblueStatus.className = snap.tbStatusClass;
+  if (snap.tbStatusText !== undefined) els.teeinblueStatus.textContent = snap.tbStatusText;
+
+  if (typeof snap.syncAllDisabled === 'boolean') els.syncAllBtn.disabled = snap.syncAllDisabled;
+
+  // i18n for restored nodes
+  applyDictionary(els.ordersList);
+  for (const item of app.orders) updateOrderCardUI(item);
+
+  // rebind buttons in restored HTML
+  rebindOrderSyncButtons();
+
+  return true;
+}
+
+// Save snapshot when popup is going to be closed/hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    saveUiSnapshot();
+  }
+});
+window.addEventListener('pagehide', () => {
+  saveUiSnapshot();
+});
 
 (async function main () {
   bindEvents();
-  await refreshTargetView();
-  await setLanguage();
+
+  const ctx = await refreshTargetView();
+  setLanguage();
 
   const token = await loadTokenFromStorage();
-  if (token) await checkConnect(token);
+
+  // Restore snapshot first => keep orders list in case early-return
+  await restoreUiSnapshot();
+
+  const cache = await readBootCache();
+  const samePage = cache?.key && cache.key === ctx.pageKey;
+  const sameToken = cache?.tokenFp && cache.tokenFp === tokenFingerprint(token);
+
+  // Same pageKey + same token => skip checkConnect
+  if (samePage && sameToken) {
+    if (cache?.teeinblueStatus?.text !== undefined) {
+      setTeeinblueStatus(
+        els.teeinblueStatus,
+        cache.teeinblueStatus.text,
+        cache.teeinblueStatus.kind || 'muted'
+      );
+    }
+    await saveUiSnapshot();
+    return;
+  }
+
+  // Record current key/token => avoid reopening popup, no re-init again
+  await writeBootCache({ key: ctx.pageKey, tokenFp: tokenFingerprint(token) });
+
+  if (token) checkConnect(token);
 })();

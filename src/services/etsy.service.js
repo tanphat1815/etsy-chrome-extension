@@ -14,13 +14,6 @@ export function isOnSellerOrdersPage (url) {
   return inSellerArea && isOrders;
 }
 
-/**
- * Open Etsy seller orders in new tab.
- * @returns {Promise<void>}
- */
-export async function openSellerOrdersInNewTab () {
-  await chrome.tabs.create({ url: URLS.ETSY.SELLER_ORDERS_URL });
-}
 
 /**
  * Etsy Orders Extractor

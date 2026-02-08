@@ -8,6 +8,10 @@
     "default_popup": "popup/index.html",
     "default_icon": "assets/icons/default_icon.png"
   },
+  "background": {
+    "service_worker": "service_worker.js",
+    "type": "module"
+  },
   "icons": {
     "16": "assets/icons/default_icon.png",
     "32": "assets/icons/default_icon.png",
