@@ -1,4 +1,6 @@
 export const ENV = {
+  IS_PRODUCTION: false,
+  
   ETSY: {
     BASE_URL: "https://www.etsy.com",
     SELLER_ORDERS_PATH: "/your/shops/me/orders",

@@ -30,6 +30,9 @@ tmp/
 temp/
 *.tmp
 
+# sample data
+samples/
+
 node_modules/
 eslint.config.js
 package-lock.json
