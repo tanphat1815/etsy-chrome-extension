@@ -74,7 +74,7 @@ export function applyDictionary(root = document, dict = window.dictionary || {})
   // translate HTML -> ["data-i18n-html"]
   root.querySelectorAll("[data-i18n-html]").forEach((el) => {
     const key = el.dataset.i18nHtml;
-    const translated = getByPath(dict, key);
+    let translated = getByPath(dict, key);
     if (translated === undefined || translated === null || translated === "") return;
     if(translated.includes('{{') && translated.includes('}}')) {
       const i18nVars = el.dataset.i18nVars;
@@ -146,17 +146,10 @@ export function renderOrderCard(item, onSyncClick) {
   wrap.className = "order";
   wrap.dataset.id = item.platform_order_id;
 
-  const emailPillText = item.emailNeedsSync
-    ? t("orders.pills.email_override", {}, "Email Override")
-    : t("orders.pills.email_ok", {}, "Email OK");
-
-  const addrPillText = item.addrNeedsSync
-    ? t(
-      "orders.pills.address_override",
-      { count: item.diffAddressKeys.length },
-      `Address Override (${item.diffAddressKeys.length})`
-    )
-    : t("orders.pills.address_ok", {}, "Address OK");
+  const emailKey = item.emailNeedsSync ? "orders.pills.email_override" : "orders.pills.email_ok";
+  const addrKey = item.addrNeedsSync ? "orders.pills.address_override" : "orders.pills.address_ok";
+  const addrCount = item.diffAddressKeys?.length || 0;
+  const addrVarsAttr = item.addrNeedsSync ? `data-i18n-vars='${JSON.stringify({ count: addrCount })}'` : "";
 
   wrap.innerHTML = `
     <div class="row">
@@ -165,12 +158,21 @@ export function renderOrderCard(item, onSyncClick) {
     </div>
 
     <div>
-      <span class="pill ${item.emailNeedsSync ? "error" : "ok"}" data-role="pill-email">
-        ${emailPillText}
+      <span
+        class="pill ${item.emailNeedsSync ? "error" : "ok"}"
+        data-role="pill-email"
+        data-i18n="${emailKey}"
+      >
+        ${item.emailNeedsSync ? "Email Override" : "Email OK"}
       </span>
 
-      <span class="pill ${item.addrNeedsSync ? "error" : "ok"}" data-role="pill-address">
-        ${addrPillText}
+      <span
+        class="pill ${item.addrNeedsSync ? "error" : "ok"}"
+        data-role="pill-address"
+        data-i18n="${addrKey}"
+        ${addrVarsAttr}
+      >
+        ${item.addrNeedsSync ? `Address Override (${addrCount})` : "Address OK"}
       </span>
     </div>
 
@@ -224,58 +226,5 @@ export function setOrderLocalStatus(platformOrderId, text, kind = "muted", i18nD
     for (const [k, v] of Object.entries(i18nData)) {
       el.dataset[k] = v;
     }
-  }
-}
-
-/**
- * Update order card after state change.
- * @param {object} item
- */
-export function updateOrderCardUI(item) {
-  const card = document.querySelector(`.order[data-id="${item.platform_order_id}"]`);
-  if (!card) return;
-
-  const pillEmail = card.querySelector('[data-role="pill-email"]');
-  const pillAddr = card.querySelector('[data-role="pill-address"]');
-  const diffEl = card.querySelector('[data-role="diff-keys"]');
-  const tbEmailEl = card.querySelector('[data-role="tb-email"]');
-  const btn = card.querySelector('[data-role="btn-sync"]');
-
-  // console.log(item);
-
-  /** Update Pill status - START **/
-  if (pillEmail) {
-    pillEmail.className = `pill ${item.emailNeedsSync ? "error" : "ok"}`;
-    pillEmail.textContent = item.emailNeedsSync
-      ? t("orders.pills.email_override", {}, "Email Override")
-      : t("orders.pills.email_ok", {}, "Email OK");
-  }
-
-  if (pillAddr) {
-    pillAddr.className = `pill ${item.addrNeedsSync ? "error" : "ok"}`;
-    pillAddr.textContent = item.addrNeedsSync
-      ? t(
-        "orders.pills.address_override",
-        { count: item.diffAddressKeys.length },
-        `Address Override (${item.diffAddressKeys.length})`
-      )
-      : t("orders.pills.address_ok", {}, "Address OK");
-  }
-  /** Update Pill status - END **/
-
-  /** Update Sync status (card footer) - START **/
-
-  /** Update Sync status (card footer) - END **/
-
-  if (diffEl) {
-    diffEl.textContent = item.diffAddressKeys?.length ? item.diffAddressKeys.join(", ") : "—";
-  }
-
-  if (tbEmailEl) {
-    tbEmailEl.textContent = item.tbEmail || "—";
-  }
-
-  if (btn) {
-    btn.disabled = !item.emailNeedsSync && !item.addrNeedsSync;
   }
 }

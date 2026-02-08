@@ -7,7 +7,6 @@ import {
   clearOrdersList,
   renderOrderCard,
   setOrderLocalStatus,
-  updateOrderCardUI,
   applyDictionary,
   t
 } from '../src/ui/renderer.js';
@@ -58,13 +57,8 @@ window.addEventListener('dictionary:updated', e => {
   const dict = e?.detail?.dictionary;
   if (dict) window.dictionary = dict;
 
-  // 1) static UI
+  // 1) static + dynamic UI (all via data-i18n)
   applyDictionary(document);
-
-  // 2) dynamic cards (pills text)
-  if (app.orders && app.orders.length) {
-    for (const item of app.orders) updateOrderCardUI(item);
-  }
 });
 
 async function setLanguage () {
@@ -270,6 +264,56 @@ function debounceConnectCheck () {
   }, 450);
 }
 
+function patchOrderCardI18n (item) {
+  const card = document.querySelector(`.order[data-id="${item.platform_order_id}"]`);
+  if (!card) return;
+
+  const pillEmail = card.querySelector('[data-role="pill-email"]');
+  const pillAddr = card.querySelector('[data-role="pill-address"]');
+  const diffEl = card.querySelector('[data-role="diff-keys"]');
+  const tbEmailEl = card.querySelector('[data-role="tb-email"]');
+  const btn = card.querySelector('[data-role="btn-sync"]');
+
+  if (pillEmail) {
+    pillEmail.className = `pill ${item.emailNeedsSync ? 'error' : 'ok'}`;
+    pillEmail.dataset.i18n = item.emailNeedsSync
+      ? 'orders.pills.email_override'
+      : 'orders.pills.email_ok';
+    delete pillEmail.dataset.i18nVars;
+    pillEmail.textContent = item.emailNeedsSync ? 'Email Override' : 'Email OK';
+  }
+
+  if (pillAddr) {
+    pillAddr.className = `pill ${item.addrNeedsSync ? 'error' : 'ok'}`;
+
+    if (item.addrNeedsSync) {
+      const count = item.diffAddressKeys?.length || 0;
+      pillAddr.dataset.i18n = 'orders.pills.address_override';
+      pillAddr.dataset.i18nVars = JSON.stringify({ count });
+      pillAddr.textContent = `Address Override (${count})`;
+    } else {
+      pillAddr.dataset.i18n = 'orders.pills.address_ok';
+      delete pillAddr.dataset.i18nVars;
+      pillAddr.textContent = 'Address OK';
+    }
+  }
+
+  if (diffEl) {
+    diffEl.textContent = item.diffAddressKeys?.length ? item.diffAddressKeys.join(', ') : '—';
+  }
+
+  if (tbEmailEl) {
+    tbEmailEl.textContent = item.tbEmail || '—';
+  }
+
+  if (btn) {
+    btn.disabled = !item.emailNeedsSync && !item.addrNeedsSync;
+  }
+
+  // Translate everything in this card using data-i18n + data-i18n-vars
+  applyDictionary(card);
+}
+
 async function scanAndCompare () {
   const token = (app.token || '').trim();
   if (!token) {
@@ -381,10 +425,8 @@ async function scanAndCompare () {
       'ok'
     );
 
-    // Translate newly rendered nodes (labels/buttons) based on current dictionary
+    // Translate newly rendered nodes (labels/buttons/pills) based on current dictionary
     applyDictionary(els.ordersList);
-    // Ensure pill text uses current language
-    for (const item of app.orders) updateOrderCardUI(item);
 
     els.syncAllBtn.disabled = false;
   } catch (e) {
@@ -454,9 +496,9 @@ async function syncSingle (platformOrderId) {
         `Sync failed ❌ (HTTP ${putRes.status})`
       ),
       'error',
-      { 
-        'i18n': 'status.order.sync_failed_http', 
-        'i18nVars': JSON.stringify({'status': putRes.status})
+      {
+        'i18n': 'status.order.sync_failed_http',
+        'i18nVars': JSON.stringify({ 'status': putRes.status })
       }
     );
     await saveUiSnapshot();
@@ -506,7 +548,8 @@ async function syncSingle (platformOrderId) {
     : 'skip';
   syncLog(platformOrderId, emailStatus, addrStatus);
 
-  updateOrderCardUI(item);
+  // Patch card state + translate by applyDictionary only
+  patchOrderCardI18n(item);
 
   if (!item.emailNeedsSync && !item.addrNeedsSync) {
     setOrderLocalStatus(
@@ -664,7 +707,6 @@ async function restoreUiSnapshot () {
 
   // i18n for restored nodes
   applyDictionary(els.ordersList);
-  for (const item of app.orders) updateOrderCardUI(item);
 
   // rebind buttons in restored HTML
   rebindOrderSyncButtons();
