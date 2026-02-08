@@ -53,23 +53,45 @@ export function t(key, vars = {}, fallback = "") {
 export function applyDictionary(root = document, dict = window.dictionary || {}) {
   // textContent
   root.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n");
-    const translated = getByPath(dict, key);
+    const key = el.dataset.i18n;
+    let translated = getByPath(dict, key);
     if (translated === undefined || translated === null || translated === "") return;
+    if(translated.includes('{{') && translated.includes('}}')) {
+      const i18nVars = el.dataset.i18nVars;
+      console.log("i18nVars:", i18nVars);
+      if (i18nVars) {
+        try {
+          const vars = JSON.parse(i18nVars);
+          translated = t(key, vars, '');
+          console.log("Translated with vars:", translated);
+        } catch (_) {
+        }
+      }
+    }
     el.textContent = String(translated);
   });
 
   // translate HTML -> ["data-i18n-html"]
   root.querySelectorAll("[data-i18n-html]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-html");
+    const key = el.dataset.i18nHtml;
     const translated = getByPath(dict, key);
     if (translated === undefined || translated === null || translated === "") return;
+    if(translated.includes('{{') && translated.includes('}}')) {
+      const i18nVars = el.dataset.i18nVars;
+      if (i18nVars) {
+        try {
+          const vars = JSON.parse(i18nVars);
+          translated = t(key, vars, '');
+        } catch (_) {
+        }
+      }
+    }
     el.innerHTML = String(translated);
   });
 
-  // translate text -> "data-i18n-html"]
+  // translate text -> "data-i18n-attr"]
   root.querySelectorAll("[data-i18n-attr]").forEach((el) => {
-    const spec = el.getAttribute("data-i18n-attr") || "";
+    const spec = el.dataset.i18nAttr || "";
     spec
       .split(";")
       .map((s) => s.trim())
@@ -191,11 +213,18 @@ export function renderOrderCard(item, onSyncClick) {
   return wrap;
 }
 
-export function setOrderLocalStatus(platformOrderId, text, kind = "muted") {
+export function setOrderLocalStatus(platformOrderId, text, kind = "muted", i18nData = {}) {
   const el = document.getElementById(`status_${platformOrderId}`);
   if (!el) return;
   el.className = `footer ${kind}`;
   el.textContent = text || "";
+
+  if (typeof i18nData === "object" && i18nData !== null) {
+    console.log("Setting i18n data:", i18nData);
+    for (const [k, v] of Object.entries(i18nData)) {
+      el.dataset[k] = v;
+    }
+  }
 }
 
 /**
@@ -212,7 +241,7 @@ export function updateOrderCardUI(item) {
   const tbEmailEl = card.querySelector('[data-role="tb-email"]');
   const btn = card.querySelector('[data-role="btn-sync"]');
 
-  console.log(item);
+  // console.log(item);
 
   /** Update Pill status - START **/
   if (pillEmail) {

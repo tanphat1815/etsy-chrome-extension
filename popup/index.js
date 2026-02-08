@@ -329,7 +329,7 @@ async function scanAndCompare () {
       });
 
       if (computed.emailNeedsSync || computed.addrNeedsSync) {
-        candidates.push({
+        const newCandidate = {
           platform_order_id: platformId,
 
           // extracted (etsy)
@@ -346,7 +346,13 @@ async function scanAndCompare () {
 
           // payload helper
           shipping_address_payload: computed.shipping_address_payload
-        });
+        };
+        candidates.push(newCandidate);
+        els.ordersList.appendChild(
+          renderOrderCard(newCandidate, async id => {
+            await syncSingle(id);
+          })
+        );
       }
     }
 
@@ -374,14 +380,6 @@ async function scanAndCompare () {
       ),
       'ok'
     );
-
-    for (const item of candidates) {
-      els.ordersList.appendChild(
-        renderOrderCard(item, async id => {
-          await syncSingle(id);
-        })
-      );
-    }
 
     // Translate newly rendered nodes (labels/buttons) based on current dictionary
     applyDictionary(els.ordersList);
@@ -424,7 +422,8 @@ async function syncSingle (platformOrderId) {
     setOrderLocalStatus(
       platformOrderId,
       t('status.order.nothing_to_sync', {}, 'Nothing to sync.'),
-      'muted'
+      'muted',
+      { 'i18n': 'status.order.nothing_to_sync' }
     );
     syncLog(platformOrderId, 'skip', 'skip');
     await saveUiSnapshot();
@@ -434,7 +433,8 @@ async function syncSingle (platformOrderId) {
   setOrderLocalStatus(
     platformOrderId,
     t('status.order.syncing', {}, 'Syncing...'),
-    'muted'
+    'muted',
+    { 'i18n': 'status.order.syncing' }
   );
 
   const putRes = await updateEtsyOrderById(token, platformOrderId, payload);
@@ -453,7 +453,11 @@ async function syncSingle (platformOrderId) {
         { status: putRes.status },
         `Sync failed ❌ (HTTP ${putRes.status})`
       ),
-      'error'
+      'error',
+      { 
+        'i18n': 'status.order.sync_failed_http', 
+        'i18nVars': JSON.stringify({'status': putRes.status})
+      }
     );
     await saveUiSnapshot();
     return;
@@ -473,7 +477,8 @@ async function syncSingle (platformOrderId) {
         {},
         'PUT ok ✅ (no response body to verify)'
       ),
-      'ok'
+      'ok',
+      { 'i18n': 'status.order.put_ok_no_body' }
     );
     await saveUiSnapshot();
     return;
@@ -507,7 +512,8 @@ async function syncSingle (platformOrderId) {
     setOrderLocalStatus(
       platformOrderId,
       t('status.order.all_synced', {}, 'All field(s) synced ✅'),
-      'ok'
+      'ok',
+      { 'i18n': 'status.order.all_synced' }
     );
   } else if (!item.emailNeedsSync && item.addrNeedsSync) {
     setOrderLocalStatus(
@@ -517,7 +523,8 @@ async function syncSingle (platformOrderId) {
         {},
         'Email synced ✅, Address needs sync ❌'
       ),
-      'error'
+      'error',
+      { 'i18n': 'status.order.email_synced_address_need' }
     );
   } else if (item.emailNeedsSync && !item.addrNeedsSync) {
     setOrderLocalStatus(
@@ -527,7 +534,8 @@ async function syncSingle (platformOrderId) {
         {},
         'Email needs sync ❌, Address synced ✅'
       ),
-      'error'
+      'error',
+      { 'i18n': 'status.order.email_need_address_synced' }
     );
   } else {
     setOrderLocalStatus(
@@ -537,7 +545,8 @@ async function syncSingle (platformOrderId) {
         {},
         'Email and Address need sync ❌'
       ),
-      'error'
+      'error',
+      { 'i18n': 'status.order.email_address_need' }
     );
   }
 

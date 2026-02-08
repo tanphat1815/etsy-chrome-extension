@@ -37,7 +37,7 @@ export function buildAddressOverride(tbAddress, extractedAddress) {
   const diffKeys = [];
 
   for (const [k, exVal] of Object.entries(ex)) {
-    if (isEmptyValue(exVal)) continue;
+    if (isEmptyValue(exVal) || !Object.keys(tb).includes(k)) continue;
     if (shouldOverride(tb[k], exVal)) {
       merged[k] = exVal;
       diffKeys.push(k);
