@@ -7,7 +7,8 @@
     "api_key": {
       "label": "Teeinblue API Key:",
       "placeholder": "Nhập API Key",
-      "button_sync": "Đồng bộ"
+      "button_sync": "Đồng bộ",
+      "button_reset": "Xóa cache"
     },
     "not_on_target": {
       "message": "Bạn chưa ở trang đơn hàng của người bán trên Etsy.",

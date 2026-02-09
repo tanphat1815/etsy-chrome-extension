@@ -87,3 +87,13 @@ export async function writeUiSnapshot(pageKey, snapshot) {
     });
   } catch (_) {}
 }
+
+// ===== Clear all snapshots =====
+export async function clearUiSnapshots () {
+  try {
+    await chrome.storage.local.remove([UI_BOOT_CACHE_KEY, UI_SNAPSHOT_KEY]);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}

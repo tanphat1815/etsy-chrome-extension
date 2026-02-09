@@ -10,7 +10,7 @@ export const URLS = {
 
   TEEINBLUE: {
     // Connect check (staging)
-    HEALTH_BY_LIST_ORDERS: `${getBaseTeeinblueUrl()}/openapi/v1/orders`,
+    HEALTH_BY_LIST_ORDERS: `${getBaseTeeinblueUrl()}/openapi/v1/orders/etsy`,
 
     // GET order by id (staging)
     GET_ORDER_BY_ID: (platformOrderId) =>

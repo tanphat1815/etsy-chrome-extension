@@ -1,5 +1,5 @@
 import { applyDictionary } from '../../src/ui/renderer.js';
-import { readUiSnapshot, writeUiSnapshot } from '../../src/cache/index.cache.js';
+import { readUiSnapshot, writeUiSnapshot, clearUiSnapshots } from '../../src/cache/index.cache.js';
 
 export function createSnapshotManager ({ app, els }) {
   function rebindOrderSyncButtons (syncSingle) {
@@ -59,5 +59,9 @@ export function createSnapshotManager ({ app, els }) {
     return true;
   }
 
-  return { saveUiSnapshot, restoreUiSnapshot };
+  async function clearCache () {
+    return await clearUiSnapshots();
+  }
+
+  return { saveUiSnapshot, restoreUiSnapshot, clearCache };
 }

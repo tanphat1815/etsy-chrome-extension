@@ -197,7 +197,7 @@ export function createOrdersController ({ app, els, snapshot }) {
     }
   }
 
-  function recomputeFromPutResponse (putData, item) {
+  function recomputeFromUpdateOrderResponse (putData, item) {
     // Use PUT response: data.customer.email + data.address
     // to recompute need-sync
     return recomputeNeedSyncFromTB(putData, {
@@ -232,7 +232,7 @@ export function createOrdersController ({ app, els, snapshot }) {
     );
 
     const putRes = await updateEtsyOrderById(token, platformOrderId, payload);
-    console.log('[PUT]', platformOrderId, putRes.status, putRes.data);
+    console.log('[PATCH]', platformOrderId, putRes.status, putRes.data);
 
     if (!putRes.ok) {
       syncLog(
@@ -278,7 +278,7 @@ export function createOrdersController ({ app, els, snapshot }) {
       return;
     }
 
-    const after = recomputeFromPutResponse(putRes.data, item);
+    const after = recomputeFromUpdateOrderResponse(putRes.data, item);
 
     // Update item state (from PUT response)
     item.tbEmail = after.tbEmail;
@@ -379,5 +379,9 @@ export function createOrdersController ({ app, els, snapshot }) {
     await snapshot.saveUiSnapshot();
   }
 
-  return { scanAndCompare, syncSingle, syncAll };
+  function resetAllOrders () {
+    els.ordersList.innerHTML = '';
+  }
+
+  return { scanAndCompare, syncSingle, syncAll, resetAllOrders };
 }

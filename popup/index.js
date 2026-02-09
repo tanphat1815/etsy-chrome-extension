@@ -66,6 +66,33 @@ function bindEvents () {
     await connect.checkConnect(token);
   });
 
+  els.resetBtn.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    await snapshot.clearCache();
+
+    // Clear CURRENT UI
+    app.orders = [];
+    orders.resetAllOrders();
+    els.syncAllBtn.disabled = true;
+
+    // recheck connect again
+    const token = (els.apiKeyInput.value || '').trim();
+    await saveTokenToStorage(token, STORAGE_KEY);
+    await connect.checkConnect(token);
+
+    // Re-evaluate current tab + recompute pageKey
+    await refreshTargetView({ app, els });
+
+    // reset main status
+    els.mainStatus.textContent = '';
+
+    // Re-apply dictionary
+    applyDictionary(document);
+
+  });
+
   els.scanBtn.addEventListener('click', orders.scanAndCompare);
   els.syncAllBtn.addEventListener('click', orders.syncAll);
 }

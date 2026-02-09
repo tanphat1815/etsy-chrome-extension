@@ -93,7 +93,7 @@ export function setOrderLocalStatus(platformOrderId, text, kind = "muted", i18nD
   el.textContent = text || "";
 
   if (typeof i18nData === "object" && i18nData !== null) {
-    console.log("Setting i18n data:", i18nData);
+    // console.log("Setting i18n data:", i18nData);
     for (const [k, v] of Object.entries(i18nData)) {
       el.dataset[k] = v;
     }

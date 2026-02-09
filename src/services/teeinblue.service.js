@@ -52,7 +52,7 @@ export async function getEtsyOrderById (token, platformOrderId) {
  */
 export async function updateEtsyOrderById (token, platformOrderId, payload) {
   const res = await fetch(URLS.TEEINBLUE.UPDATE_ORDER_BY_ID(platformOrderId), {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',

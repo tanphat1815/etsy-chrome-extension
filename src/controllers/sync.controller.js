@@ -62,7 +62,7 @@ export function buildAddressOverride(tbAddress, extractedAddress) {
  * }}
  */
 export function recomputeNeedSyncFromTB(tbData, extracted) {
-  const tbEmail = tbData?.customer?.email || "";
+  const tbEmail = tbData?.email || "";
   const tbAddress = tbData?.address || {};
 
   const exEmailNorm = normalizeEmail(extracted.email);

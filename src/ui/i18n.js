@@ -55,12 +55,12 @@ export function applyDictionary(root = document, dict = window.dictionary || {})
 
     if (String(translated).includes('{{') && String(translated).includes('}}')) {
       const i18nVars = el.dataset.i18nVars;
-      console.log("i18nVars:", i18nVars);
+      // console.log("i18nVars:", i18nVars);
       if (i18nVars) {
         try {
           const vars = JSON.parse(i18nVars);
           translated = t(key, vars, '');
-          console.log("Translated with vars:", translated);
+          // console.log("Translated with vars:", translated);
         } catch (_) {}
       }
     }
