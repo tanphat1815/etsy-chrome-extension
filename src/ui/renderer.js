@@ -1,3 +1,4 @@
+import { normalizeAddress } from "../utils/value.js";
 /**
  * UI rendering
  */
@@ -113,6 +114,34 @@ export function clearOrdersList(elOrdersList) {
   elOrdersList.innerHTML = "";
 }
 
+function renderAddressCompareTable(etsyAddr = {}, tbAddr = {}, diffKeys = []) {
+  const etsy = normalizeAddress(etsyAddr);
+  const tb = normalizeAddress(tbAddr);
+
+  return `
+    <div class="addr-row addr-head">
+      <div>&#32;</div>
+      <div class="addr-src" data-i18n="orders.labels.extracted">Etsy</div>
+      <div class="addr-src" data-i18n="orders.labels.teeinblue">Teeinblue</div>
+    </div>
+    <div class="address-table">
+      ${Object.keys(etsy).map((key) => {
+        const willOverwrite = diffKeys.includes(key);
+
+        return `
+          <div class="addr-row ${willOverwrite ? "overwrite" : ""}">
+            <div class="addr-key">
+              ${t(`address.${key}`, {}, key.replace(/_/g, " "))}
+            </div>
+            <div class="addr-val mono">${etsy[key]}</div>
+            <div class="addr-val mono">${tb[key]}</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 /**
  * Render one order card.
  * @param {object} item
@@ -125,67 +154,102 @@ export function renderOrderCard(item, onSyncClick) {
   wrap.dataset.id = item.platform_order_id;
 
   const emailPillText = item.emailNeedsSync
-    ? t("orders.pills.email_override", {}, "Email Override")
-    : t("orders.pills.email_ok", {}, "Email OK");
+    ? t("orders.pills.email_override", {}, "Need sync")
+    : t("orders.pills.email_ok", {}, "OK");
 
   const addrPillText = item.addrNeedsSync
     ? t(
       "orders.pills.address_override",
       { count: item.diffAddressKeys.length },
-      `Address Override (${item.diffAddressKeys.length})`
+      `Missing (${item.diffAddressKeys.length})`
     )
-    : t("orders.pills.address_ok", {}, "Address OK");
+    : t("orders.pills.address_ok", {}, "OK");
 
   wrap.innerHTML = `
-    <div class="row">
-      <div class="label" data-i18n="orders.labels.order_id">Order ID</div>
-      <div class="value mono">${item.platform_order_id}</div>
-    </div>
-
-    <div>
-      <span class="pill ${item.emailNeedsSync ? "error" : "ok"}" data-role="pill-email">
-        ${emailPillText}
-      </span>
-
-      <span class="pill ${item.addrNeedsSync ? "error" : "ok"}" data-role="pill-address">
-        ${addrPillText}
-      </span>
-    </div>
-
-    <div class="row" style="margin-top:8px;">
-      <div class="label" data-i18n="orders.labels.extracted">Extracted</div>
-      <div class="value">${item.email || "—"}</div>
-    </div>
-
-    <div class="row">
-      <div class="label" data-i18n="orders.labels.teeinblue">Teeinblue</div>
-      <div class="value" data-role="tb-email">${item.tbEmail || "—"}</div>
-    </div>
-
-    <div class="row">
-      <div class="label" data-i18n="orders.labels.diff_keys">Diff Keys</div>
-      <div class="value small" data-role="diff-keys">
-        ${item.diffAddressKeys?.length ? item.diffAddressKeys.join(", ") : "—"}
+    <div class="order-header">
+      <div class="order-id">
+        <span class="label" data-i18n="orders.labels.order_id">Order ID</span>
+        <span class="value">#${item.platform_order_id}</span>
+      </div>
+      <div class="orderActions">
+        <button
+          class="btn btn-primary"
+          type="button"
+          data-role="btn-sync"
+          data-i18n="orders.buttons.sync"
+          ${(!item.emailNeedsSync && !item.addrNeedsSync) ? "disabled" : ""}
+        >
+          Sync
+        </button>
       </div>
     </div>
 
-    <div class="orderActions">
-      <button
-        class="btn btn-secondary"
-        type="button"
-        data-role="btn-sync"
-        data-i18n="orders.buttons.sync"
-        ${(!item.emailNeedsSync && !item.addrNeedsSync) ? "disabled" : ""}
-      >
-        Sync
-      </button>
+    <!-- EMAIL -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">
+          📧 <span data-i18n="orders.fields.email">Email</span>
+        </span>
+        <span class="pill ${item.emailNeedsSync ? "error" : "ok"}" data-role="pill-email">
+          ${emailPillText}
+        </span>
+      </div>
+
+      <div class="row">
+        <div class="label" data-i18n="orders.labels.extracted">Etsy</div>
+        <div class="value mono">${item.email || "—"}</div>
+      </div>
+
+      <div class="row">
+        <div class="label" data-i18n="orders.labels.teeinblue">Teeinblue</div>
+        <div class="value mono" data-role="tb-email">${item.tbEmail || "—"}</div>
+      </div>
     </div>
 
-    <div class="footer muted" id="status_${item.platform_order_id}"></div>
+    <!-- ADDRESS -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">
+          📦 <span data-i18n="orders.fields.address">Shipping address</span>
+        </span>
+
+        <span class="pill ${item.addrNeedsSync ? "error" : "ok"}" data-role="pill-address">
+          ${addrPillText}
+        </span>
+      </div>
+
+      ${item.diffAddressKeys.length ? `
+            <ul class="diff-list">
+              ${item.diffAddressKeys.map(k => 
+                `<li class="diff-item">${t(`address.${k}`, {}, k.replace(/_/g, " "))}</li>`).join("")}
+            </ul>
+          ` : `<div class="muted small">${t("status.order.no_difference", {}, "No differences found")}</div>`
+      }
+
+      <button class="btn-link toggle-address" data-i18n="orders.actions.show_full_address">
+        Show full address
+      </button>
+
+      <div class="address-compare hidden">
+        ${renderAddressCompareTable(item.shipping_address, item.tbAddress, item.diffAddressKeys)}
+      </div>
+    </div>
   `;
 
   wrap.querySelector('[data-role="btn-sync"]').addEventListener("click", () => {
     onSyncClick(item.platform_order_id);
+  });
+
+  const toggleBtn = wrap.querySelector(".toggle-address");
+  const addressCompare = wrap.querySelector(".address-compare");
+
+  toggleBtn.addEventListener("click", () => {
+    const open = !addressCompare.classList.contains("hidden");
+    addressCompare.classList.toggle("hidden");
+
+    toggleBtn.textContent = open
+      ? t("orders.actions.show_full_address", {}, "Show full address")
+      : t("orders.actions.hide_full_address", {}, "Hide full address");
   });
 
   return wrap;
@@ -215,8 +279,8 @@ export function updateOrderCardUI(item) {
   if (pillEmail) {
     pillEmail.className = `pill ${item.emailNeedsSync ? "error" : "ok"}`;
     pillEmail.textContent = item.emailNeedsSync
-      ? t("orders.pills.email_override", {}, "Email Override")
-      : t("orders.pills.email_ok", {}, "Email OK");
+      ? t("orders.pills.email_override", {}, "Need sync")
+      : t("orders.pills.email_ok", {}, "OK");
   }
 
   if (pillAddr) {
@@ -225,9 +289,9 @@ export function updateOrderCardUI(item) {
       ? t(
         "orders.pills.address_override",
         { count: item.diffAddressKeys.length },
-        `Address Override (${item.diffAddressKeys.length})`
+        `Missing (${item.diffAddressKeys.length})`
       )
-      : t("orders.pills.address_ok", {}, "Address OK");
+      : t("orders.pills.address_ok", {}, "OK");
   }
 
   if (diffEl) {

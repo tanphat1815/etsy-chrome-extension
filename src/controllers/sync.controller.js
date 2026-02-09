@@ -75,6 +75,7 @@ export function recomputeNeedSyncFromTB(tbData, extracted) {
 
   return {
     tbEmail,
+    tbAddress,
     emailNeedsSync,
     addrNeedsSync,
     diffAddressKeys: diffKeys,

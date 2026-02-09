@@ -35,10 +35,18 @@
       "sync": "Đồng bộ"
     },
     "pills": {
-      "email_override": "Cập nhật Email",
-      "email_ok": "Email OK",
-      "address_override": "Cập nhật Địa chỉ ({{count}})",
-      "address_ok": "Địa chỉ OK"
+      "email_override": "Cần đồng bộ",
+      "email_ok": "OK",
+      "address_override": "Thiếu ({{count}})",
+      "address_ok": "OK"
+    },
+    "fields": {
+      "email": "Email",
+      "address": "Địa chỉ giao hàng"
+    },
+    "actions": {
+      "show_full_address": "Hiển thị đầy đủ địa chỉ",
+      "hide_full_address": "Ẩn địa chỉ"
     }
   },
   "status": {
@@ -61,7 +69,8 @@
       "all_synced": "Đã đồng bộ tất cả field(s) ✅",
       "email_synced_address_need": "Email đã đồng bộ ✅, Address cần đồng bộ ❌",
       "email_need_address_synced": "Email cần đồng bộ ❌, Address đã đồng bộ ✅",
-      "email_address_need": "Email và Address cần đồng bộ ❌"
+      "email_address_need": "Email và Address cần đồng bộ ❌",
+      "no_difference": "Không có khác biệt"
     }
   }
 }

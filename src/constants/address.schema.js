@@ -1,0 +1,17 @@
+export const ADDRESS_FIELDS = [
+  'first_name',
+  'last_name',
+  'name',
+  'company',
+  'phone',
+  'address1',
+  'address2',
+  'city',
+  'province',
+  'province_code',
+  'zip',
+  'country',
+  'country_code',
+  'latitude',
+  'longitude',
+];

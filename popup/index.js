@@ -292,6 +292,7 @@ async function scanAndCompare () {
 
           // tb view
           tbEmail: computed.tbEmail,
+          tbAddress: computed.tbAddress,
 
           // state
           emailNeedsSync: computed.emailNeedsSync,
