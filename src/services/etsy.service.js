@@ -13,6 +13,18 @@ export function isOnSellerOrdersPage (url) {
   const isOrders = u.includes('/orders');
   return inSellerArea && isOrders;
 }
+// export function isOnSellerOrdersPage (url = '') {
+//   try {
+//     const u = new URL(url);
+//     if (u.hostname !== 'www.etsy.com') return false;
+
+//     // Accept /your/shops/{shop}/orders and optional trailing slash
+//     const path = u.pathname.replace(/\/$/, '');
+//     return /^\/your\/shops\/[^/]+\/orders$/.test(path);
+//   } catch (_) {
+//     return false;
+//   }
+// }
 
 
 /**

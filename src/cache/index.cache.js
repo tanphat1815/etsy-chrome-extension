@@ -1,5 +1,3 @@
-// src/cache/index.cache.js
-
 const UI_BOOT_CACHE_KEY = 'ui_boot_cache_v1';
 
 // IMPORTANT: use local to persist across popup open/close (even without service worker)
