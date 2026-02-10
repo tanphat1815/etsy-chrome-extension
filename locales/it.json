@@ -36,10 +36,18 @@
       "sync": "Sincronizza"
     },
     "pills": {
-      "email_override": "Aggiorna e-mail",
-      "email_ok": "E-mail OK",
-      "address_override": "Aggiorna indirizzo ({{count}})",
-      "address_ok": "Indirizzo OK"
+      "email_override": "Sincronizzazione necessaria",
+      "email_ok": "OK",
+      "address_override": "Mancanti ({{count}})",
+      "address_ok": "OK"
+    },
+    "fields": {
+      "email": "Email",
+      "address": "Indirizzo di spedizione"
+    },
+    "actions": {
+      "show_full_address": "▸ Mostra indirizzo completo",
+      "hide_full_address": "▾ Nascondi indirizzo"
     }
   },
   "status": {
@@ -62,7 +70,8 @@
       "all_synced": "Tutti i campi sincronizzati ✅",
       "email_synced_address_need": "E-mail sincronizzata ✅, indirizzo da sincronizzare ❌",
       "email_need_address_synced": "E-mail da sincronizzare ❌, indirizzo sincronizzato ✅",
-      "email_address_need": "E-mail e indirizzo da sincronizzare ❌"
+      "email_address_need": "E-mail e indirizzo da sincronizzare ❌",
+      "no_difference": "Nessuna differenza trovata"
     }
   }
 }

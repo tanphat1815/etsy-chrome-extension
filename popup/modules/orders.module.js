@@ -134,6 +134,7 @@ export function createOrdersController ({ app, els, snapshot }) {
 
             // tb view
             tbEmail: computed.tbEmail,
+            tbAddress: computed.tbAddress,
 
             // state
             emailNeedsSync: computed.emailNeedsSync,
@@ -382,6 +383,29 @@ export function createOrdersController ({ app, els, snapshot }) {
   function resetAllOrders () {
     els.ordersList.innerHTML = '';
   }
+
+  function handleOrdersListClick (e) {
+    const btn = e.target.closest('[data-role="toggle-address"]');
+    if (!btn) return;
+
+    const card = btn.closest('.order');
+    if (!card) return;
+
+    const address = card.querySelector('.address-compare');
+    if (!address) return;
+
+    const open = !address.classList.contains("hidden");
+
+    address.classList.toggle("hidden");
+
+    btn.dataset.i18n = open
+      ? 'orders.actions.show_full_address'
+      : 'orders.actions.hide_full_address';
+
+    applyDictionary(card);
+  }
+
+  els.ordersList.addEventListener('click', handleOrdersListClick);
 
   return { scanAndCompare, syncSingle, syncAll, resetAllOrders };
 }

@@ -36,10 +36,18 @@
       "sync": "Synchronisieren"
     },
     "pills": {
-      "email_override": "E-Mail aktualisieren",
-      "email_ok": "E-Mail OK",
-      "address_override": "Adresse aktualisieren ({{count}})",
-      "address_ok": "Adresse OK"
+      "email_override": "Sync erforderlich",
+      "email_ok": "OK",
+      "address_override": "Fehlend ({{count}})",
+      "address_ok": "OK"
+    },
+    "fields": {
+      "email": "E-Mail",
+      "address": "Lieferadresse"
+    },
+    "actions": {
+      "show_full_address": "▸ Vollständige Adresse anzeigen",
+      "hide_full_address": "▾ Adresse ausblenden"
     }
   },
   "status": {
@@ -62,7 +70,8 @@
       "all_synced": "Alle Felder synchronisiert ✅",
       "email_synced_address_need": "E-Mail synchronisiert ✅, Adresse muss synchronisiert werden ❌",
       "email_need_address_synced": "E-Mail muss synchronisiert werden ❌, Adresse synchronisiert ✅",
-      "email_address_need": "E-Mail und Adresse müssen synchronisiert werden ❌"
+      "email_address_need": "E-Mail und Adresse müssen synchronisiert werden ❌", 
+      "no_difference": "Keine Unterschiede gefunden"
     }
   }
 }
