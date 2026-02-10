@@ -336,3 +336,15 @@ input:focus {
 .addr-row.overwrite .addr-key::after {
   content: " ⚠️";
 }
+
+.addr-row.overridden {
+  background: rgba(40, 167, 69, 0.12);
+}
+
+.addr-row.overridden .addr-key::after {
+  content: "●";
+  color: #28a745;
+  font-size: 0.75em;
+  margin-left: 0.4em;
+  vertical-align: middle;
+}

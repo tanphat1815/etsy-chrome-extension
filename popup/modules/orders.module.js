@@ -1,6 +1,7 @@
 import {
   clearOrdersList,
   renderOrderCard,
+  updateAddressCompareTable,
   setMainStatus,
   setOrderLocalStatus,
   applyDictionary,
@@ -212,7 +213,12 @@ export function createOrdersController ({ app, els, snapshot }) {
     const item = app.orders.find(x => x.platform_order_id === platformOrderId);
     if (!token || !item) return;
 
+    // save old state before syncing
+    const beforeSyncedState = structuredClone(item);
+
     const payload = buildUpdatePayload(item);
+
+    // Nothing to sync this order
     if (!Object.keys(payload).length) {
       setOrderLocalStatus(
         platformOrderId,
@@ -281,12 +287,13 @@ export function createOrdersController ({ app, els, snapshot }) {
 
     const after = recomputeFromUpdateOrderResponse(putRes.data, item);
 
-    // Update item state (from PUT response)
+    // Update item state (from PATCH response)
     item.tbEmail = after.tbEmail;
     item.emailNeedsSync = after.emailNeedsSync;
     item.addrNeedsSync = after.addrNeedsSync;
     item.diffAddressKeys = after.diffAddressKeys;
     item.shipping_address_payload = after.shipping_address_payload;
+    item.tbAddress = putRes.data.address || {};
 
     // Minimal overlay logs: show if still need sync or not
     const emailStatus = payload.email
@@ -345,6 +352,13 @@ export function createOrdersController ({ app, els, snapshot }) {
         { 'i18n': 'status.order.email_address_need' }
       );
     }
+
+    updateAddressCompareTable(
+      platformOrderId,
+      item.shipping_address,
+      item.tbAddress,
+      beforeSyncedState.diffAddressKeys
+    );
 
     // Update Sync all button availability
     els.syncAllBtn.disabled = !app.orders.some(

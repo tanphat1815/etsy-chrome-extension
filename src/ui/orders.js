@@ -8,7 +8,7 @@ export function clearOrdersList(elOrdersList) {
   elOrdersList.innerHTML = "";
 }
 
-function renderAddressCompareTable(etsyAddr = {}, tbAddr = {}, diffKeys = []) {
+export function renderAddressCompareTable(etsyAddr = {}, tbAddr = {}, diffKeys = []) {
   const etsy = normalizeAddress(etsyAddr);
   const tb = normalizeAddress(tbAddr);
 
@@ -19,21 +19,33 @@ function renderAddressCompareTable(etsyAddr = {}, tbAddr = {}, diffKeys = []) {
       <div class="addr-src" data-i18n="orders.labels.teeinblue">Teeinblue</div>
     </div>
     <div class="address-table">
-      ${Object.keys(etsy).map((key) => {
-        const willOverwrite = diffKeys.includes(key);
+      ${Object.keys(etsy)
+    .map((key) => {
+      const isInDiff = diffKeys.includes(key);
+      const sameValue = String(etsy[key] ?? "") === String(tb[key] ?? "");
 
-        return `
-          <div class="addr-row ${willOverwrite ? "overwrite" : ""}">
-            <div class="addr-key" data-i18n="address.${key}">
-              ${key.replace(/_/g, " ")}
+      const rowClass = isInDiff ? (sameValue ? "overridden" : "overwrite") : "";
+
+      return `
+            <div class="addr-row ${rowClass}">
+              <div class="addr-key" data-i18n="address.${key}">
+                ${key.replace(/_/g, " ")}
+              </div>
+              <div class="addr-val mono">${etsy[key] ?? ""}</div>
+              <div class="addr-val mono">${tb[key] ?? ""}</div>
             </div>
-            <div class="addr-val mono">${etsy[key]}</div>
-            <div class="addr-val mono">${tb[key]}</div>
-          </div>
-        `;
-      }).join("")}
+          `;
+    })
+    .join("")}
     </div>
   `;
+}
+
+export function updateAddressCompareTable(platformOrderId, etsyAddr = {}, tbAddr = {}, diffKeys = []) {
+  const elTable = document.querySelector(`.order[data-id="${platformOrderId}"] .address-compare`);
+  if (!elTable) return;
+
+  elTable.innerHTML = renderAddressCompareTable(etsyAddr, tbAddr, diffKeys);
 }
 
 /**
