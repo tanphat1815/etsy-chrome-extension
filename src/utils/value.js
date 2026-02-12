@@ -19,7 +19,7 @@ export function normalizeScalar(v) {
 }
 
 export function normalizeAddress(address = {}) {
-  console.log(address);
+  // console.log(address);
   const normalized = {};
   for (const key of ADDRESS_FIELDS) {
     normalized[key] =

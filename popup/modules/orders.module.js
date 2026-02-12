@@ -103,7 +103,7 @@ export function createOrdersController ({ app, els, snapshot }) {
     try {
       const extracted = await extractOrdersMock();
       console.log('Orders extracted from Etsy:', extracted);
-      const candidates = [];
+      const candidates = app.orders;
 
       for (const ex of extracted) {
         if (scanAbort.signal.aborted) break;
@@ -153,8 +153,6 @@ export function createOrdersController ({ app, els, snapshot }) {
           );
         }
       }
-
-      app.orders = candidates;
 
       if (!candidates.length) {
         setMainStatus(
