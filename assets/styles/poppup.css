@@ -1,5 +1,16 @@
 :root {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* Hamburger menu tokens */
+  --tb-menu-bg: #ffffff;
+  --tb-menu-border: rgba(0, 0, 0, 0.12);
+  --tb-menu-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  --tb-menu-radius: 12px;
+  --tb-menu-gap: 8px;
+
+  --tb-icon-btn-bg: rgba(2, 6, 23, 0.06);
+  --tb-icon-btn-bg-hover: rgba(2, 6, 23, 0.10);
+  --tb-icon-btn-border: rgba(0, 0, 0, 0.12);
 }
 
 body {
@@ -7,19 +18,36 @@ body {
   width: 490px;
 }
 
+.hidden {
+  display: none !important;
+}
 .wrap {
   background-color: #f0f5ff;
 }
 
 .header {
   padding: 10px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 40px auto 95px;
+  justify-content: space-between;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   background-color: #02277c;
   color: #ffffff;
+}
+.header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header__left {
+  justify-content: left;
+}
+.header__right {
+  justify-content: right;
+}
+.header__center {
+  text-align: center;
 }
 
 .header img {
@@ -29,6 +57,7 @@ body {
 
 h1 {
   font-size: 14px;
+  margin: 0;
 }
 
 .content {
@@ -274,6 +303,69 @@ input:focus {
   cursor: pointer;
 }
 
+/* ===== Toolbar + Hamburger menu ===== */
+
+.toolbar {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.icon-btn {
+  cursor: pointer;
+  background: var(--tb-lang-bg);
+  border-radius: var(--tb-lang-radius);
+  border: 1px solid var(--tb-lang-border);
+}
+
+.icon-btn:hover {
+  background: var(--tb-lang-bg-hover);
+}
+
+.icon-btn svg {
+  width: 100%;
+}
+
+.menu {
+  position: absolute;
+  left: 0;
+  top: 42px;
+  width: 220px;
+  background: var(--tb-menu-bg);
+  border: 1px solid var(--tb-menu-border);
+  border-radius: var(--tb-menu-radius);
+  box-shadow: var(--tb-menu-shadow);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tb-menu-gap);
+  z-index: 5;
+}
+
+.menu__item {
+  width: 100%;
+}
+
+.menu__sep {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 2px 0;
+}
+
+/* screen-reader only */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ===== Existing address compare styles (keep) ===== */
 .address-compare:not(.hidden) {
   display: flex;
   flex-direction: column;
@@ -348,74 +440,3 @@ input:focus {
   margin-left: 0.4em;
   vertical-align: middle;
 }
-
-/* ==========================================================================
-  Hamburger menu
-   ========================================================================== */
-
-:root{
-  --tb-menu-bg:#fff;
-  --tb-menu-border:rgba(0,0,0,.12);
-  --tb-menu-shadow:0 10px 25px rgba(0,0,0,.12);
-  --tb-menu-radius:12px;
-  --tb-menu-gap:8px;
-
-  --tb-icon-btn-bg:rgba(2,6,23,.06);
-  --tb-icon-btn-bg-hover:rgba(2,6,23,.10);
-  --tb-icon-btn-border:rgba(0,0,0,.12);
-}
-
-.actions--with-menu{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.actions__menu{
-  position:relative;
-  margin-left:auto;
-}
-
-.icon-btn{
-  width:38px;
-  height:34px;
-  border-radius:10px;
-  border:1px solid var(--tb-icon-btn-border);
-  background:var(--tb-icon-btn-bg);
-  cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  transition:background .15s ease-in-out;
-}
-
-.icon-btn:hover{ background:var(--tb-icon-btn-bg-hover); }
-
-.icon-btn__bars{
-  width:16px;height:2px;background:#111827;border-radius:10px;position:relative;
-}
-
-.icon-btn__bars::before,
-.icon-btn__bars::after{
-  content:"";position:absolute;left:0;width:16px;height:2px;background:#111827;border-radius:10px;
-}
-.icon-btn__bars::before{ top:-6px; }
-.icon-btn__bars::after{ top:6px; }
-
-.menu{
-  position:absolute;
-  right:0;
-  top:42px;
-  width:200px;
-  background:var(--tb-menu-bg);
-  border:1px solid var(--tb-menu-border);
-  border-radius:var(--tb-menu-radius);
-  box-shadow:var(--tb-menu-shadow);
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  gap:var(--tb-menu-gap);
-  z-index:5;
-}
-
-.menu__item{ width:100%; }

@@ -12,28 +12,62 @@
 <body>
   <div class="wrap">
     <div class="header">
-      <img src="../assets/icons/white_icon.svg" alt="Logo" width="24" height="24">
-      <h1 data-i18n="popup.title">Etsy → Teeinblue Sync</h1>
-      <div class="languages-selector">
-        <!--  Languague selector - start -->
-        <div class="languages-selector__control">
-          <select id="languageSelect" class="languages-selector__select" aria-label="Select language" data-i18n-attr="aria-label:popup.language_selector.aria_label">
-            <option value="EN" selected>EN</option>
-            <option value="FR">FR</option>
-            <option value="DE">DE</option>
-            <option value="IT">IT</option>
-            <option value="ES">ES</option>
-            <option value="PT">PT</option>
-            <option value="VI">VI</option>
-          </select>
 
-          <span class="languages-selector__chevron" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
-              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
+      <div class="header__left">
+        <div class="toolbar">
+          <button id="menuBtn" class="icon-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+            <span class="icon-btn__bars" aria-hidden="true">
+              <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M4 7C4 6.44771 4.44772 6 5 6H24C24.5523 6 25 6.44771 25 7C25 7.55229 24.5523 8 24 8H5C4.44772 8 4 7.55229 4 7Z" fill="#ffffff"></path><path d="M4 13.9998C4 13.4475 4.44772 12.9997 5 12.9997L16 13C16.5523 13 17 13.4477 17 14C17 14.5523 16.5523 15 16 15L5 14.9998C4.44772 14.9998 4 14.552 4 13.9998Z" fill="#ffffff"></path><path d="M5 19.9998C4.44772 19.9998 4 20.4475 4 20.9998C4 21.552 4.44772 21.9997 5 21.9997H22C22.5523 21.9997 23 21.552 23 20.9998C23 20.4475 22.5523 19.9998 22 19.9998H5Z" fill="#ffffff"></path></g></svg>
+            </span>
+          </button>
+
+          <div id="menuDropdown" class="menu hidden" role="menu" aria-label="Actions">
+
+            <div class="menu__sep" role="separator"></div>
+
+            <button id="clearCacheBtn" class="menu__item btn btn-secondary" type="button" role="menuitem">Reset</button>
+            <button id="showLogBtn" class="menu__item btn btn-primary" type="button" role="menuitem">Show log</button>
+          </div>
         </div>
-        <!--  Languague selector - end -->
+      </div>
+
+      <div class="header__center">
+        <img src="../assets/icons/white_icon.svg" alt="Logo" width="24" height="24">
+        <h1 data-i18n="popup.title">Etsy → Teeinblue Sync</h1>
+      </div>
+
+      <div class="header__right">
+        <div class="languages-selector">
+          <div class="languages-selector__control">
+            <!-- Custom UI -->
+            <button id="langBtn" class="lang-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="lang-btn__flag" aria-hidden="true">🇬🇧</span>
+              <span class="lang-btn__code">EN</span>
+              <span class="lang-btn__chev" aria-hidden="true">▾</span>
+            </button>
+
+            <div id="langMenu" class="lang-menu hidden" role="listbox" aria-label="Select language">
+              <button class="lang-option" type="button" data-lang="EN"><span class="lang-option__flag">🇬🇧</span>EN</button>
+              <button class="lang-option" type="button" data-lang="FR"><span class="lang-option__flag">🇫🇷</span>FR</button>
+              <button class="lang-option" type="button" data-lang="DE"><span class="lang-option__flag">🇩🇪</span>DE</button>
+              <button class="lang-option" type="button" data-lang="IT"><span class="lang-option__flag">🇮🇹</span>IT</button>
+              <button class="lang-option" type="button" data-lang="ES"><span class="lang-option__flag">🇪🇸</span>ES</button>
+              <button class="lang-option" type="button" data-lang="PT"><span class="lang-option__flag">🇵🇹</span>PT</button>
+              <button class="lang-option" type="button" data-lang="VI"><span class="lang-option__flag">🇻🇳</span>VI</button>
+            </div>
+
+            <!-- Hidden native select (kept for existing setLanguage() logic) -->
+            <select id="languageSelect" class="sr-only" aria-label="Select language" data-i18n-attr="aria-label:popup.language_selector.aria_label">
+              <option value="EN" selected>EN</option>
+              <option value="FR">FR</option>
+              <option value="DE">DE</option>
+              <option value="IT">IT</option>
+              <option value="ES">ES</option>
+              <option value="PT">PT</option>
+              <option value="VI">VI</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -45,24 +79,6 @@
           <button class="btn btn-secondary" id="submit" type="submit" data-i18n="popup.api_key.button_sync">Check</button>
         </div>
         <div id="teeinblueStatus" class="muted status"></div>
-        <div class="actions">
-          <button class="btn btn-secondary" id="clearCacheBtn" type="button" data-i18n="popup.buttons.clear_cache">Clear cache</button>
-          <button class="btn btn-secondary" id="showLogBtn" type="button" data-i18n="popup.buttons.show_logs">Show logs</button>
-        </div>
-
-        <!-- <div class="actions actions--with-menu">
-          <div class="actions__menu">
-            <button id="menuBtn" class="icon-btn" type="button" aria-haspopup="menu" aria-expanded="false">
-              <span class="icon-btn__bars" aria-hidden="true"></span>
-            </button>
-
-            <div id="menuDropdown" class="menu hidden" role="menu" aria-label="More actions">
-              <button class="menu__item btn" id="clearCacheBtn" type="button" data-i18n="popup.buttons.clear_cache" role="menuitem">Clear cache</button>
-              <button class="menu__item btn" id="showLogBtn" type="button" data-i18n="popup.buttons.show_logs" role="menuitem">Show logs</button>
-            </div>
-          </div>
-        </div> -->
-
       </div>
 
       <div id="stateNotOnTarget" class="card hidden">

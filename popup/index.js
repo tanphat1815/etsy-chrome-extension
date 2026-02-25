@@ -70,12 +70,97 @@ function initHamburgerMenu () {
     toggle();
   });
 
-  // close when click menu item
+  // Close when clicking any menu item
   menu.addEventListener('click', (e) => {
-    if (e.target?.closest?.('button')) close();
+    const target = e.target;
+    if (target && target.closest('button')) close();
   });
 
-  // close on outside click
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (menu.classList.contains('hidden')) return;
+    const t = e.target;
+    if (btn.contains(t) || menu.contains(t)) return;
+    close();
+  });
+
+  // Close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    close();
+  });
+}
+
+function initLanguageDropdown () {
+  const select = document.getElementById('languageSelect');
+  const btn = document.getElementById('langBtn');
+  const menu = document.getElementById('langMenu');
+  if (!select || !btn || !menu) return;
+
+  const flagMap = {
+    EN: '🇬🇧',
+    FR: '🇫🇷',
+    DE: '🇩🇪',
+    IT: '🇮🇹',
+    ES: '🇪🇸',
+    PT: '🇵🇹',
+    VI: '🇻🇳'
+  };
+
+  const flagEl = btn.querySelector('.lang-btn__flag');
+  const codeEl = btn.querySelector('.lang-btn__code');
+
+  const setBtnLabel = (code) => {
+    const c = String(code || 'EN').toUpperCase();
+    if (flagEl) flagEl.textContent = flagMap[c] || '🏳️';
+    if (codeEl) codeEl.textContent = c;
+  };
+
+  const close = () => {
+    menu.classList.add('hidden');
+    btn.setAttribute('aria-expanded', 'false');
+  };
+
+  const open = () => {
+    menu.classList.remove('hidden');
+    btn.setAttribute('aria-expanded', 'true');
+  };
+
+  const toggle = () => {
+    const isOpen = !menu.classList.contains('hidden');
+    isOpen ? close() : open();
+  };
+
+  // init label from select
+  setBtnLabel(select.value);
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  });
+
+  menu.addEventListener('click', (e) => {
+    const opt = e.target.closest('.lang-option');
+    if (!opt) return;
+
+    const code = opt.getAttribute('data-lang');
+    if (!code) return;
+
+    select.value = code;
+    setBtnLabel(code);
+
+    // trigger existing setLanguage() logic
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+
+    close();
+  });
+
+  // If select changes by other logic, keep UI in sync
+  select.addEventListener('change', () => {
+    setBtnLabel(select.value);
+  });
+
   document.addEventListener('click', (e) => {
     if (menu.classList.contains('hidden')) return;
     const t = e.target;
@@ -148,7 +233,9 @@ function bindEvents () {
   els.scanBtn.addEventListener('click', orders.scanAndCompare);
   els.syncAllBtn.addEventListener('click', orders.syncAll);
 
+  // UI-only
   initHamburgerMenu();
+  initLanguageDropdown();
 }
 
 // Save snapshot when popup is going to be closed/hidden
