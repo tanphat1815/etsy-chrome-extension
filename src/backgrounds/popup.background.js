@@ -1,10 +1,11 @@
 import { URLS } from '../config/urls.js';
 import { isOnSellerOrdersPage } from '../services/etsy.service.js';
+import { popupWorkerType } from '../constants/serviceWorkers.schema.js';
 
 let pendingOpenPopup = null; // { tabId, windowId }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type !== 'OPEN_ETSY_ORDERS_AND_POPUP') return;
+  if (msg?.type !== popupWorkerType.OPEN_ETSY_ORDERS_AND_POPUP) return;
 
   (async () => {
     const tab = await chrome.tabs.create({
@@ -32,6 +33,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
   try {
     if (chrome.action?.openPopup) {
+      await chrome.windows.update(pendingOpenPopup.windowId, { focused: true });
       await chrome.action.openPopup({ windowId: pendingOpenPopup.windowId });
     }
   } finally {

@@ -1,7 +1,11 @@
 import { getDomRefs } from '../src/ui/dom.js';
 import { applyDictionary, setTeeinblueStatus } from '../src/ui/renderer.js';
 
+import { popupWorkerType } from '../src/constants/serviceWorkers.schema.js';
+
 import { readBootCache, writeBootCache, tokenFingerprint } from '../src/cache/index.cache.js';
+
+import { openLog } from '../src/utils/logger.js';
 
 import { registerDictionaryUpdatedListener, setLanguage } from './modules/i18n.module.js';
 import { refreshTargetView } from './modules/target.module.js';
@@ -40,10 +44,56 @@ const connect = createConnectController({
   saveUiSnapshot: snapshot.saveUiSnapshot
 });
 
+function initHamburgerMenu () {
+  const btn = document.getElementById('menuBtn');
+  const menu = document.getElementById('menuDropdown');
+  if (!btn || !menu) return;
+
+  const close = () => {
+    menu.classList.add('hidden');
+    btn.setAttribute('aria-expanded', 'false');
+  };
+
+  const open = () => {
+    menu.classList.remove('hidden');
+    btn.setAttribute('aria-expanded', 'true');
+  };
+
+  const toggle = () => {
+    const isOpen = !menu.classList.contains('hidden');
+    isOpen ? close() : open();
+  };
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  });
+
+  // close when click menu item
+  menu.addEventListener('click', (e) => {
+    if (e.target?.closest?.('button')) close();
+  });
+
+  // close on outside click
+  document.addEventListener('click', (e) => {
+    if (menu.classList.contains('hidden')) return;
+    const t = e.target;
+    if (btn.contains(t) || menu.contains(t)) return;
+    close();
+  });
+
+  // close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    close();
+  });
+}
+
 function bindEvents () {
   els.redirectLink.addEventListener('click', async e => {
     e.preventDefault();
-    await chrome.runtime.sendMessage({ type: 'OPEN_ETSY_ORDERS_AND_POPUP' });
+    await chrome.runtime.sendMessage({ type: popupWorkerType.OPEN_ETSY_ORDERS_AND_POPUP });
     window.close();
   });
 
@@ -93,8 +143,12 @@ function bindEvents () {
 
   });
 
+  els.showLogBtn.addEventListener('click', openLog);
+
   els.scanBtn.addEventListener('click', orders.scanAndCompare);
   els.syncAllBtn.addEventListener('click', orders.syncAll);
+
+  initHamburgerMenu();
 }
 
 // Save snapshot when popup is going to be closed/hidden

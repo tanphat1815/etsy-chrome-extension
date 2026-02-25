@@ -7,16 +7,166 @@ import {
   applyDictionary,
   t
 } from '../../src/ui/renderer.js';
+import { ordersWorkerType } from '../../src/constants/serviceWorkers.schema.js';
 
 import { extractOrdersMock } from '../../src/services/etsy.service.js';
-import { getEtsyOrderById, updateEtsyOrderById } from '../../src/services/teeinblue.service.js';
+import { updateEtsyOrderById } from '../../src/services/teeinblue.service.js';
 
 import { recomputeNeedSyncFromTB, buildUpdatePayload } from '../../src/controllers/sync.controller.js';
 import { syncLog } from '../../src/utils/logger.js';
 
 export function createOrdersController ({ app, els, snapshot }) {
-  let scanAbort = null;
+  let scanJobId = '';
+  let scanPollTimer = null;
 
+  // Used for incremental consume from job.candidates when popup is open
+  let lastCandidateCount = 0;
+
+  // IMPORTANT: de-dupe across:
+  // - push messages (TB_SCAN_CANDIDATE)
+  // - polling (TB_SCAN_GET_STATE)
+  // - restored snapshot DOM when popup re-opened
+  const ordersById = new Map(); // platform_order_id -> item|null (null if only DOM exists)
+
+  let snapshotTimer = null;
+  function scheduleSaveUiSnapshot () {
+    if (snapshotTimer) clearTimeout(snapshotTimer);
+    snapshotTimer = setTimeout(() => {
+      snapshot.saveUiSnapshot().catch(() => {});
+    }, 200);
+  }
+
+  function rebuildDedupeIndexFromAppOrders () {
+    const unique = [];
+    const seen = new Set();
+
+    ordersById.clear();
+
+    for (const item of (app.orders || [])) {
+      const id = item?.platform_order_id || '';
+      if (!id) continue;
+      if (seen.has(id)) continue;
+
+      seen.add(id);
+      unique.push(item);
+      ordersById.set(id, item);
+    }
+
+    app.orders = unique;
+  }
+
+  function dedupeOrdersListDom () {
+    const seen = new Set();
+
+    els.ordersList
+      .querySelectorAll('.order[data-id]')
+      .forEach((card) => {
+        const id = card?.dataset?.id || '';
+        if (!id) return;
+
+        if (seen.has(id)) {
+          card.remove();
+          return;
+        }
+
+        seen.add(id);
+
+        // ignore in-memory item
+        if (!ordersById.has(id)) ordersById.set(id, null);
+      });
+
+    // Use DOM unique card count as baseline for incremental candidates consume on reopen
+    lastCandidateCount = Math.max(lastCandidateCount, seen.size);
+  }
+
+  function primeDedupeStateFromUI () {
+    rebuildDedupeIndexFromAppOrders();
+    dedupeOrdersListDom();
+  }
+
+  function upsertCandidate (item, { render = true } = {}) {
+    const id = item?.platform_order_id || '';
+    if (!id) return false;
+
+    const existing = ordersById.get(id);
+
+    // Already existed in memory or in snapshot
+    if (ordersById.has(id)) {
+      if (existing == null) {
+        // upgrade placeholder => real item
+        // to avoid blocking syncSingle when not finish scanning
+        ordersById.set(id, item);
+      } else {
+        ordersById.set(id, item);
+      }
+
+      const idx = (app.orders || []).findIndex(x => x?.platform_order_id === id);
+      if (idx >= 0) app.orders[idx] = item;
+      else app.orders.push(item);
+
+      return false;
+    }
+
+    // If card already exists in DOM (restored snapshot), NOT render again
+    const existingCard = els.ordersList.querySelector(`.order[data-id="${id}"]`);
+    if (existingCard) {
+      ordersById.set(id, item);
+
+      const idx = (app.orders || []).findIndex(x => x?.platform_order_id === id);
+      if (idx >= 0) app.orders[idx] = item;
+      else app.orders.push(item);
+
+      return false;
+    }
+
+    // new id
+    ordersById.set(id, item);
+
+    const idx = (app.orders || []).findIndex(x => x?.platform_order_id === id);
+    if (idx >= 0) app.orders[idx] = item;
+    else app.orders.push(item);
+
+    if (!render) return false;
+
+    const card = renderOrderCard(item, async (orderId) => {
+      await syncSingle(orderId);
+    });
+
+    els.ordersList.appendChild(card);
+
+    // translate new card (just appended)
+    applyDictionary(card);
+
+    // enable/disable Sync All by current `app.orders`
+    els.syncAllBtn.disabled = !app.orders.some(x => x.emailNeedsSync || x.addrNeedsSync);
+
+    return true;
+  }
+
+  function appendNewCandidates (allCandidates) {
+    const list = Array.isArray(allCandidates) ? allCandidates : [];
+    if (!list.length) return false;
+
+    // If job.candidates got reset => re-consume
+    if (list.length < lastCandidateCount) lastCandidateCount = 0;
+
+    let appended = false;
+
+    for (let i = lastCandidateCount; i < list.length; i++) {
+      const item = list[i];
+      const didAppend = upsertCandidate(item, { render: true });
+      if (didAppend) appended = true;
+    }
+
+    lastCandidateCount = Math.max(lastCandidateCount, list.length);
+
+    // enable/disable Sync All by current app.orders
+    els.syncAllBtn.disabled = !app.orders.some(x => x.emailNeedsSync || x.addrNeedsSync);
+
+    return appended;
+  }
+
+  // translate generic contents/ order card
   function patchOrderCardI18n (item) {
     const card = document.querySelector(`.order[data-id="${item.platform_order_id}"]`);
     if (!card) return;
@@ -67,6 +217,133 @@ export function createOrdersController ({ app, els, snapshot }) {
     applyDictionary(card);
   }
 
+  async function stopScanPoll () {
+    if (scanPollTimer) {
+      clearInterval(scanPollTimer);
+      scanPollTimer = null;
+    }
+  }
+
+  async function pollScanJob () {
+    if (!scanJobId) return;
+
+    const state = await chrome.runtime.sendMessage({
+      type: ordersWorkerType.SCAN_GET_STATE,
+      jobId: scanJobId
+    });
+
+    if (!state?.ok || !state?.job) return;
+
+    if (state.job.pageKey && app.pageKey && state.job.pageKey !== app.pageKey) return;
+
+    const job = state.job;
+    const total = job.progress?.total ?? 0;
+    const processed = job.progress?.processed ?? 0;
+
+    //render incrementally whenever candidates grow
+    const appended = appendNewCandidates(job.candidates || []);
+
+    // save snapshot only when there is new UI
+    if (appended) {
+      scheduleSaveUiSnapshot();
+    }
+
+    if (job.status === 'running') {
+      setMainStatus(
+        els.mainStatus,
+        t(
+          'status.scanning_progress',
+          { processed, total, found: app.orders.length },
+          `Scanning... (${processed}/${total}) | Found: ${app.orders.length}`
+        ),
+        'muted'
+      );
+      return;
+    }
+
+    // stop polling when finished / cancelled / error
+    await stopScanPoll();
+
+    if (job.status !== 'done') {
+      setMainStatus(
+        els.mainStatus,
+        t(
+          'status.scan_failed',
+          { message: job.status },
+          `Scan stopped: ${job.status}`
+        ),
+        'error'
+      );
+      els.scanBtn.disabled = false;
+      scheduleSaveUiSnapshot();
+      return;
+    }
+
+    // check finish => candidates may still not rendered items => check if not empty then render
+    appendNewCandidates(job.candidates || []);
+    scheduleSaveUiSnapshot();
+
+    if (!app.orders.length) {
+      setMainStatus(
+        els.mainStatus,
+        t('status.no_orders_need_sync', {}, 'No orders need syncing (based on current extract).'),
+        'ok'
+      );
+      els.syncAllBtn.disabled = true;
+    } else {
+      setMainStatus(
+        els.mainStatus,
+        t(
+          'status.found_orders_need_sync',
+          { count: app.orders.length },
+          `Found ${app.orders.length} order(s) needing sync.`
+        ),
+        'ok'
+      );
+      els.syncAllBtn.disabled = !app.orders.some(x => x.emailNeedsSync || x.addrNeedsSync);
+    }
+
+    els.scanBtn.disabled = false;
+  }
+
+  async function startScanPoll () {
+    await stopScanPoll();
+    scanPollTimer = setInterval(pollScanJob, 800);
+    await pollScanJob();
+  }
+
+  async function resumeBackgroundScanIfAny () {
+    const last = await chrome.runtime.sendMessage({ type: ordersWorkerType.SCAN_GET_LAST });
+    if (!last?.ok || !last?.jobId) return;
+
+    scanJobId = last.jobId;
+
+    const state = await chrome.runtime.sendMessage({
+      type: ordersWorkerType.SCAN_GET_STATE,
+      jobId: scanJobId
+    });
+
+    if (!state?.ok || !state?.job) return;
+    if (state.job.pageKey && app.pageKey && state.job.pageKey !== app.pageKey) return;
+
+    if (state.job.status === 'running' || state.job.status === 'done') {
+      await startScanPoll();
+    }
+  }
+
+  // Realtime push from background when a new candidate is found
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type !== ordersWorkerType.SCAN_NEW_CANDIDATE) return;
+
+    if (msg.pageKey && app.pageKey && msg.pageKey !== app.pageKey) return;
+
+    if (!scanJobId && msg.jobId) scanJobId = msg.jobId;
+    if (scanJobId && msg.jobId && msg.jobId !== scanJobId) return;
+
+    const appended = upsertCandidate(msg.item, { render: true });
+    if (appended) scheduleSaveUiSnapshot();
+  });
+
   async function scanAndCompare () {
     const token = (app.token || '').trim();
     if (!token) {
@@ -78,12 +355,11 @@ export function createOrdersController ({ app, els, snapshot }) {
       return;
     }
 
-    if (scanAbort) {
+    if (scanJobId) {
       try {
-        scanAbort.abort();
+        await chrome.runtime.sendMessage({ type: ordersWorkerType.SCAN_CANCEL, jobId: scanJobId });
       } catch (_) {}
     }
-    scanAbort = new AbortController();
 
     els.scanBtn.disabled = true;
     els.syncAllBtn.disabled = true;
@@ -97,90 +373,30 @@ export function createOrdersController ({ app, els, snapshot }) {
       ),
       'muted'
     );
+
     clearOrdersList(els.ordersList);
     app.orders = [];
+
+    lastCandidateCount = 0;
+    ordersById.clear();
 
     try {
       const extracted = await extractOrdersMock();
       console.log('Orders extracted from Etsy:', extracted);
-      const candidates = app.orders;
 
-      for (const ex of extracted) {
-        if (scanAbort.signal.aborted) break;
+      const started = await chrome.runtime.sendMessage({
+        type: ordersWorkerType.SCAN_START,
+        token,
+        extracted,
+        pageKey: app.pageKey || ''
+      });
 
-        const platformId = ex.platform_order_id;
-
-        const tb = await getEtsyOrderById(token, platformId);
-        console.log(
-          '[GET]',
-          platformId,
-          tb.status,
-          tb.status.toString().startsWith('2') ? tb.data : '__'
-        );
-
-        if (!tb.ok || !tb.data || typeof tb.data !== 'object') continue;
-
-        const computed = recomputeNeedSyncFromTB(tb.data, {
-          email: ex.email,
-          shipping_address: ex.shipping_address
-        });
-
-        if (computed.emailNeedsSync || computed.addrNeedsSync) {
-          const newCandidate = {
-            platform_order_id: platformId,
-
-            // extracted (etsy)
-            email: ex.email,
-            shipping_address: ex.shipping_address,
-
-            // tb view
-            tbEmail: computed.tbEmail,
-            tbAddress: computed.tbAddress,
-
-            // state
-            emailNeedsSync: computed.emailNeedsSync,
-            addrNeedsSync: computed.addrNeedsSync,
-            diffAddressKeys: computed.diffAddressKeys,
-
-            // payload helper
-            shipping_address_payload: computed.shipping_address_payload
-          };
-          candidates.push(newCandidate);
-          els.ordersList.appendChild(
-            renderOrderCard(newCandidate, async id => {
-              await syncSingle(id);
-            })
-          );
-        }
+      if (!started?.ok || !started?.jobId) {
+        throw new Error(started?.error || 'Failed to start scan job');
       }
 
-      if (!candidates.length) {
-        setMainStatus(
-          els.mainStatus,
-          t(
-            'status.no_orders_need_sync',
-            {},
-            'No orders need syncing (based on current extract).'
-          ),
-          'ok'
-        );
-        return;
-      }
-
-      setMainStatus(
-        els.mainStatus,
-        t(
-          'status.found_orders_need_sync',
-          { count: candidates.length },
-          `Found ${candidates.length} order(s) needing sync.`
-        ),
-        'ok'
-      );
-
-      // Translate newly rendered nodes (labels/buttons/pills) based on current dictionary
-      applyDictionary(els.ordersList);
-
-      els.syncAllBtn.disabled = false;
+      scanJobId = started.jobId;
+      await startScanPoll();
     } catch (e) {
       setMainStatus(
         els.mainStatus,
@@ -192,15 +408,14 @@ export function createOrdersController ({ app, els, snapshot }) {
         'error'
       );
     } finally {
-      await snapshot.saveUiSnapshot();
+      scheduleSaveUiSnapshot();
       els.scanBtn.disabled = false;
     }
   }
 
-  function recomputeFromUpdateOrderResponse (putData, item) {
-    // Use PUT response: data.customer.email + data.address
-    // to recompute need-sync
-    return recomputeNeedSyncFromTB(putData, {
+  function recomputeFromUpdateOrderResponse (data, item) {
+    // data.customer.email + data.address to recompute need-sync
+    return recomputeNeedSyncFromTB(data, {
       email: item.email,
       shipping_address: item.shipping_address
     });
@@ -262,7 +477,7 @@ export function createOrdersController ({ app, els, snapshot }) {
       return;
     }
 
-    // Verified update using PUT response body
+    // Verified update using response body
     if (!putRes.data || typeof putRes.data !== 'object') {
       syncLog(
         platformOrderId,
@@ -274,7 +489,7 @@ export function createOrdersController ({ app, els, snapshot }) {
         t(
           'status.order.put_ok_no_body',
           {},
-          'PUT ok ✅ (no response body to verify)'
+          'PATCH UPDATE ok ✅ (no response body to verify)'
         ),
         'ok',
         { 'i18n': 'status.order.put_ok_no_body' }
@@ -292,6 +507,9 @@ export function createOrdersController ({ app, els, snapshot }) {
     item.diffAddressKeys = after.diffAddressKeys;
     item.shipping_address_payload = after.shipping_address_payload;
     item.tbAddress = putRes.data.address || {};
+
+    // keep map up-to-date (avoid stale ref after PATCH)
+    ordersById.set(platformOrderId, item);
 
     // Minimal overlay logs: show if still need sync or not
     const emailStatus = payload.email
@@ -393,7 +611,10 @@ export function createOrdersController ({ app, els, snapshot }) {
   }
 
   function resetAllOrders () {
-    els.ordersList.innerHTML = '';
+    clearOrdersList(els.ordersList);
+    app.orders = [];
+    ordersById.clear();
+    lastCandidateCount = 0;
   }
 
   function handleOrdersListClick (e) {
@@ -406,9 +627,9 @@ export function createOrdersController ({ app, els, snapshot }) {
     const address = card.querySelector('.address-compare');
     if (!address) return;
 
-    const open = !address.classList.contains("hidden");
+    const open = !address.classList.contains('hidden');
 
-    address.classList.toggle("hidden");
+    address.classList.toggle('hidden');
 
     btn.dataset.i18n = open
       ? 'orders.actions.show_full_address'
@@ -418,6 +639,11 @@ export function createOrdersController ({ app, els, snapshot }) {
   }
 
   els.ordersList.addEventListener('click', handleOrdersListClick);
+
+  // IMPORTANT: when popup is re-opened, DOM snapshot may already contain cards
+  primeDedupeStateFromUI();
+
+  resumeBackgroundScanIfAny().catch(() => {});
 
   return { scanAndCompare, syncSingle, syncAll, resetAllOrders };
 }

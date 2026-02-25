@@ -7,8 +7,7 @@
     "api_key": {
       "label": "Teeinblue API Key:",
       "placeholder": "Nhập API Key",
-      "button_sync": "Đồng bộ",
-      "button_reset": "Xóa cache"
+      "button_sync": "Đồng bộ"
     },
     "not_on_target": {
       "message": "Bạn chưa ở trang đơn hàng của người bán trên Etsy.",
@@ -19,6 +18,8 @@
       "note_html": "Data được lấy từ trang orders trên Etsy của bạn"
     },
     "buttons": {
+      "clear_cache": "Xóa cache",
+      "show_logs": "Xem log",
       "scan_compare": "Quét & So sánh",
       "sync_all": "Đồng bộ tất cả"
     },

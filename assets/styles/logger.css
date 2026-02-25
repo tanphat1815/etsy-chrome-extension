@@ -1,0 +1,215 @@
+:root {
+  /* Layout */
+  --tb-log-width: 420px;
+  --tb-log-max-height: 32vh;
+  --tb-log-radius: 12px;
+  --tb-log-gap: 8px;
+
+  /* Typography */
+  --tb-log-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --tb-log-font-size: 12px;
+  --tb-log-font-size-small: 11px;
+  --tb-log-line-height: 1.35;
+
+  /* Surface */
+  --tb-log-bg: rgba(15, 23, 42, 0.92);
+  --tb-log-bg-header: rgba(2, 6, 23, 0.35);
+  --tb-log-border: rgba(148, 163, 184, 0.35);
+  --tb-log-divider: rgba(148, 163, 184, 0.25);
+  --tb-log-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+
+  /* Text */
+  --tb-log-text: #e5e7eb;
+  --tb-log-muted: rgba(229, 231, 235, 0.75);
+
+  /* Buttons */
+  --tb-log-btn-bg: rgba(2, 6, 23, 0.4);
+  --tb-log-btn-bg-hover: rgba(2, 6, 23, 0.55);
+  --tb-log-btn-border: rgba(148, 163, 184, 0.35);
+
+  /* Modal */
+  --tb-log-modal-backdrop: rgba(0, 0, 0, 0.45);
+  --tb-log-modal-bg: rgba(2, 6, 23, 0.92);
+  --tb-log-modal-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+
+  /* Status colors */
+  --tb-log-ok: #22c55e;        /* ok */
+  --tb-log-warn: #f59e0b;      /* need-sync */
+  --tb-log-fail: #ef4444;      /* failed */
+  --tb-log-skip: #94a3b8;      /* skip */
+  --tb-log-unknown: #a78bfa;   /* unknown */
+
+  /* Line background tints */
+  --tb-log-line-ok: rgba(34, 197, 94, 0.10);
+  --tb-log-line-warn: rgba(245, 158, 11, 0.12);
+  --tb-log-line-fail: rgba(239, 68, 68, 0.12);
+  --tb-log-line-skip: rgba(148, 163, 184, 0.10);
+  --tb-log-line-unknown: rgba(167, 139, 250, 0.12);
+}
+
+/* ==========================================================================
+   Root container
+   ========================================================================== */
+
+#__teeinblue_sync_log_overlay__.tb-log-root {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  width: var(--tb-log-width);
+  max-width: calc(100vw - 24px);
+  max-height: var(--tb-log-max-height);
+  z-index: 2147483647;
+  background: var(--tb-log-bg);
+  color: var(--tb-log-text);
+  border: 1px solid var(--tb-log-border);
+  border-radius: var(--tb-log-radius);
+  box-shadow: var(--tb-log-shadow);
+  font-family: var(--tb-log-font);
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Header + buttons
+   ========================================================================== */
+
+#__teeinblue_sync_log_overlay__ .tb-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--tb-log-divider);
+  background: var(--tb-log-bg-header);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-title {
+  font-size: var(--tb-log-font-size);
+  font-weight: 600;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-actions {
+  display: flex;
+  gap: var(--tb-log-gap);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-btn {
+  font-size: var(--tb-log-font-size);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--tb-log-btn-border);
+  background: var(--tb-log-btn-bg);
+  color: var(--tb-log-text);
+  cursor: pointer;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-btn:hover {
+  background: var(--tb-log-btn-bg-hover);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-btn--danger {
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+/* ==========================================================================
+   Body / lines
+   ========================================================================== */
+
+#__teeinblue_sync_log_overlay__ .tb-log-body {
+  margin: 0;
+  padding: 10px;
+  font-size: var(--tb-log-font-size-small);
+  line-height: var(--tb-log-line-height);
+  max-height: calc(var(--tb-log-max-height) - 42px);
+  overflow: auto;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-empty {
+  color: var(--tb-log-muted);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  margin-bottom: 6px;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-ts {
+  color: var(--tb-log-muted);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-order {
+  font-weight: 700;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-sep {
+  color: var(--tb-log-muted);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-k {
+  color: var(--tb-log-muted);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-status {
+  font-weight: 700;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-status--ok { color: var(--tb-log-ok); }
+#__teeinblue_sync_log_overlay__ .tb-log-status--need-sync { color: var(--tb-log-warn); }
+#__teeinblue_sync_log_overlay__ .tb-log-status--failed { color: var(--tb-log-fail); }
+#__teeinblue_sync_log_overlay__ .tb-log-status--skip { color: var(--tb-log-skip); }
+#__teeinblue_sync_log_overlay__ .tb-log-status--unknown { color: var(--tb-log-unknown); }
+
+#__teeinblue_sync_log_overlay__ .tb-log-line--ok { background: var(--tb-log-line-ok); }
+#__teeinblue_sync_log_overlay__ .tb-log-line--need-sync { background: var(--tb-log-line-warn); }
+#__teeinblue_sync_log_overlay__ .tb-log-line--failed { background: var(--tb-log-line-fail); }
+#__teeinblue_sync_log_overlay__ .tb-log-line--skip { background: var(--tb-log-line-skip); }
+#__teeinblue_sync_log_overlay__ .tb-log-line--unknown { background: var(--tb-log-line-unknown); }
+
+/* ==========================================================================
+   Confirm modal
+   ========================================================================== */
+
+#__teeinblue_sync_log_overlay__ .tb-log-modal {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--tb-log-modal-backdrop);
+  backdrop-filter: blur(2px);
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-modal-card {
+  width: min(340px, calc(100% - 24px));
+  border-radius: var(--tb-log-radius);
+  border: 1px solid var(--tb-log-border);
+  background: var(--tb-log-modal-bg);
+  box-shadow: var(--tb-log-modal-shadow);
+  padding: 12px;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-modal-title {
+  font-size: var(--tb-log-font-size);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-modal-desc {
+  font-size: var(--tb-log-font-size);
+  opacity: 0.85;
+  margin-bottom: 12px;
+}
+
+#__teeinblue_sync_log_overlay__ .tb-log-modal-actions {
+  display: flex;
+  gap: var(--tb-log-gap);
+  justify-content: flex-end;
+}

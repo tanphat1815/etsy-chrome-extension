@@ -19,6 +19,8 @@
       "note_html": "Les données sont récupérées depuis votre page Orders sur Etsy"
     },
     "buttons": {
+      "clear_cache": "Effacer le cache",
+      "show_logs": "Afficher les logs",
       "scan_compare": "Scanner & comparer",
       "sync_all": "Tout synchroniser"
     },

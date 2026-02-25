@@ -7,8 +7,7 @@
     "api_key": {
       "label": "Clave API de Teeinblue:",
       "placeholder": "Introduce la clave API",
-      "button_sync": "Sincronizar",
-      "button_reset": "Limpiar cache"
+      "button_sync": "Sincronizar"
     },
     "not_on_target": {
       "message": "No estás en la página de pedidos del vendedor en Etsy.",
@@ -19,6 +18,8 @@
       "note_html": "Los datos se obtienen de tu página de Orders en Etsy"
     },
     "buttons": {
+      "clear_cache": "Limpiar cache",
+      "show_logs": "Mostrar logs",
       "scan_compare": "Escanear y comparar",
       "sync_all": "Sincronizar todo"
     },

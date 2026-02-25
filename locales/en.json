@@ -7,8 +7,7 @@
     "api_key": {
       "label": "Teeinblue API Key:",
       "placeholder": "Enter API Key",
-      "button_sync": "Sync",
-      "button_reset": "Clear cache"
+      "button_sync": "Sync"
     },
     "not_on_target": {
       "message": "You’re not on Etsy seller orders page.",
@@ -19,6 +18,8 @@
       "note_html": "DOM Extracted orders on Etsy"
     },
     "buttons": {
+      "clear_cache": "Clear cache",
+      "show_logs": "Show logs",
       "scan_compare": "Scan & Compare",
       "sync_all": "Sync all"
     },

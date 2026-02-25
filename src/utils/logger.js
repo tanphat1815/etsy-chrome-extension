@@ -1,14 +1,25 @@
 /**
  * Overlay logger:
  * log: "[time] order_id | email: ... | address: ..."
+ *
+ * Exports:
+ * - syncLog(orderId, emailStatus, addressStatus): append a formatted line + show overlay
+ * - appendLogToPage(line): append custom line + show overlay
+ * - openLog(): show overlay with current saved logs (no append)
  */
 
-const MAX_LOG_LINES = 100;
-const STORAGE_KEY = "__teeinblue_sync_log_lines__";
+import { loggerWorkerType } from "../constants/serviceWorkers.schema.js";
+import { configs } from "../constants/configs.schema.js";
+
+const MAX_LOG_LINES = configs.LOGS.MAX_LINES || 100;
+const LOGS_KEY = configs.STORAGE_KEY.LOG_LINES;
 
 // Prefer session storage (MV3). Fallback to local.
 const STORAGE =
   chrome?.storage?.session ? chrome.storage.session : chrome.storage.local;
+
+// Injected stylesheet file inside extension package
+const CSS_FILE = "assets/styles/logger.css";
 
 function nowTS() {
   const d = new Date();
@@ -36,25 +47,223 @@ function storageSet(obj) {
   });
 }
 
-function storageRemove(key) {
-  return new Promise((resolve) => {
-    try {
-      STORAGE.remove([key], () => resolve());
-    } catch (_) {
-      resolve();
-    }
-  });
-}
-
 async function readLogs() {
-  const v = await storageGet(STORAGE_KEY);
+  const v = await storageGet(LOGS_KEY);
   return Array.isArray(v) ? v : [];
 }
 
 async function writeLogs(lines) {
   const trimmed = lines.slice(-MAX_LOG_LINES);
-  await storageSet({ [STORAGE_KEY]: trimmed });
+  await storageSet({ [LOGS_KEY]: trimmed });
   return trimmed;
+}
+
+/**
+ * Render (or update) overlay on the active tab.
+ * @param {string} snapshotText newline-separated text
+ */
+async function renderOverlayOnActiveTab(snapshotText) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+
+  // Inject CSS
+  try {
+    await chrome.scripting.insertCSS({
+      target: { tabId: tab.id },
+      files: [CSS_FILE]
+    });
+  } catch (_) {}
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    args: [snapshotText, LOGS_KEY, loggerWorkerType.LOG_CLEAR],
+    func: (text, storageKey, clearType) => {
+      const ID = "__teeinblue_sync_log_overlay__";
+      const BODY_ID = ID + "__body";
+      const MID = ID + "__modal";
+
+      const mk = (tag, cls, txt) => {
+        const el = document.createElement(tag);
+        if (cls) el.className = cls;
+        if (txt != null) el.textContent = txt;
+        return el;
+      };
+
+      const escapeHtml = (s) =>
+        String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+
+      const normStatus = (s) => {
+        const v = String(s || "").trim();
+        if (v === "ok" || v === "need-sync" || v === "failed" || v === "skip") return v;
+        return "unknown";
+      };
+
+      const lineKind = (emailStatus, addrStatus) => {
+        if (emailStatus === "failed" || addrStatus === "failed") return "failed";
+        if (emailStatus === "need-sync" || addrStatus === "need-sync") return "need-sync";
+        if (emailStatus === "ok" && addrStatus === "ok") return "ok";
+        if (emailStatus === "skip" && addrStatus === "skip") return "skip";
+        return "unknown";
+      };
+
+      const formatLineHtml = (line) => {
+        // Expected format:
+        // [HH:mm:ss] orderId | email: <status> | address: <status>
+        const m = String(line || "").match(
+          /^\[(\d{2}:\d{2}:\d{2})\]\s+(.+?)\s+\|\s+email:\s+(\S+)\s+\|\s+address:\s+(\S+)\s*$/
+        );
+
+        if (!m) {
+          return `<div class="tb-log-line tb-log-line--unknown">${escapeHtml(line)}</div>`;
+        }
+
+        const ts = m[1];
+        const orderId = m[2];
+        const emailStatus = normStatus(m[3]);
+        const addrStatus = normStatus(m[4]);
+        const kind = lineKind(emailStatus, addrStatus);
+
+        return `
+          <div class="tb-log-line tb-log-line--${kind}">
+            <span class="tb-log-ts">[${escapeHtml(ts)}]</span>
+            <span class="tb-log-order">${escapeHtml(orderId)}</span>
+            <span class="tb-log-sep">|</span>
+            <span class="tb-log-kv">
+              <span class="tb-log-k">email:</span>
+              <span class="tb-log-status tb-log-status--${emailStatus}">${escapeHtml(emailStatus)}</span>
+            </span>
+            <span class="tb-log-sep">|</span>
+            <span class="tb-log-kv">
+              <span class="tb-log-k">address:</span>
+              <span class="tb-log-status tb-log-status--${addrStatus}">${escapeHtml(addrStatus)}</span>
+            </span>
+          </div>
+        `;
+      };
+
+      const formatSnapshotHtml = (snapshotText) => {
+        const lines = String(snapshotText || "")
+          .split("\n")
+          .filter(Boolean);
+
+        if (!lines.length) {
+          return `<div class="tb-log-empty">No logs yet.</div>`;
+        }
+
+        return lines.map(formatLineHtml).join("");
+      };
+
+      const ensureModal = (root, onClear) => {
+        let modal = document.getElementById(MID);
+        if (modal) return modal;
+
+        modal = mk("div", "tb-log-modal");
+        modal.id = MID;
+
+        const card = mk("div", "tb-log-modal-card");
+
+        const title = mk("div", "tb-log-modal-title", "Clear log history?");
+        const desc = mk(
+          "div",
+          "tb-log-modal-desc",
+          "This will remove the saved log lines."
+        );
+
+        const row = mk("div", "tb-log-modal-actions");
+
+        const cancel = mk("button", "tb-log-btn", "Cancel");
+        const confirm = mk("button", "tb-log-btn tb-log-btn--danger", "Clear");
+
+        cancel.addEventListener("click", () => (modal.style.display = "none"));
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) modal.style.display = "none";
+        });
+
+        confirm.addEventListener("click", () => {
+          modal.style.display = "none";
+          onClear();
+        });
+
+        row.appendChild(cancel);
+        row.appendChild(confirm);
+
+        card.appendChild(title);
+        card.appendChild(desc);
+        card.appendChild(row);
+
+        modal.appendChild(card);
+        root.appendChild(modal);
+
+        return modal;
+      };
+
+      let root = document.getElementById(ID);
+
+      if (!root) {
+        root = mk("div", "tb-log-root");
+        root.id = ID;
+
+        const header = mk("div", "tb-log-header");
+        const title = mk("div", "tb-log-title", "History");
+        const actions = mk("div", "tb-log-actions");
+
+        const clearBtn = mk("button", "tb-log-btn", "Clear");
+        const closeBtn = mk("button", "tb-log-btn", "Close");
+
+        actions.appendChild(clearBtn);
+        actions.appendChild(closeBtn);
+        header.appendChild(title);
+        header.appendChild(actions);
+
+        const body = mk("div", "tb-log-body");
+        body.id = BODY_ID;
+
+        root.appendChild(header);
+        root.appendChild(body);
+
+        const modal = ensureModal(root, () => {
+          body.innerHTML = `<div class="tb-log-empty">No logs yet.</div>`;
+
+          try {
+            chrome.runtime.sendMessage({
+              type: clearType,
+              key: storageKey
+            });
+          } catch (_) {}
+        });
+
+        clearBtn.addEventListener("click", () => {
+          modal.style.display = "flex";
+        });
+
+        closeBtn.addEventListener("click", () => root.remove());
+
+        document.body.appendChild(root);
+      }
+
+      const body = document.getElementById(BODY_ID);
+      if (!body) return;
+
+      body.innerHTML = formatSnapshotHtml(text);
+      body.scrollTop = body.scrollHeight;
+    }
+  });
+}
+
+/**
+ * Open overlay without appending a new line.
+ */
+export async function openLog() {
+  try {
+    const lines = await readLogs();
+    const snapshotText = lines.join("\n");
+    await renderOverlayOnActiveTab(snapshotText);
+  } catch (_) {}
 }
 
 /**
@@ -63,192 +272,13 @@ async function writeLogs(lines) {
  */
 export async function appendLogToPage(line) {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
-
     // Persist first (so closing overlay won't lose history)
     const oldLines = await readLogs();
     oldLines.push(line);
     const lines = await writeLogs(oldLines);
     const snapshotText = lines.join("\n");
 
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      args: [snapshotText, STORAGE_KEY],
-      func: (text, storageKey) => {
-        const ID = "__teeinblue_sync_log_overlay__";
-        let root = document.getElementById(ID);
-
-        const ensureStyles = (el) => {
-          el.style.position = "fixed";
-          el.style.right = "12px";
-          el.style.bottom = "12px";
-          el.style.width = "420px";
-          el.style.maxWidth = "calc(100vw - 24px)";
-          el.style.maxHeight = "32vh";
-          el.style.zIndex = "2147483647";
-          el.style.background = "rgba(15, 23, 42, 0.92)";
-          el.style.color = "#e5e7eb";
-          el.style.border = "1px solid rgba(148, 163, 184, 0.35)";
-          el.style.borderRadius = "12px";
-          el.style.boxShadow = "0 12px 30px rgba(0,0,0,0.35)";
-          el.style.fontFamily =
-            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
-          el.style.overflow = "hidden";
-        };
-
-        const mkBtn = (text) => {
-          const b = document.createElement("button");
-          b.textContent = text;
-          b.style.fontSize = "12px";
-          b.style.padding = "4px 8px";
-          b.style.borderRadius = "8px";
-          b.style.border = "1px solid rgba(148, 163, 184, 0.35)";
-          b.style.background = "rgba(2, 6, 23, 0.4)";
-          b.style.color = "#e5e7eb";
-          b.style.cursor = "pointer";
-          return b;
-        };
-
-        const ensureModal = (root) => {
-          const MID = ID + "__modal";
-          let modal = document.getElementById(MID);
-          if (modal) return modal;
-
-          modal = document.createElement("div");
-          modal.id = MID;
-          modal.style.position = "absolute";
-          modal.style.inset = "0";
-          modal.style.display = "none";
-          modal.style.alignItems = "center";
-          modal.style.justifyContent = "center";
-          modal.style.background = "rgba(0,0,0,0.45)";
-          modal.style.backdropFilter = "blur(2px)";
-
-          const card = document.createElement("div");
-          card.style.width = "min(340px, calc(100% - 24px))";
-          card.style.borderRadius = "12px";
-          card.style.border = "1px solid rgba(148, 163, 184, 0.35)";
-          card.style.background = "rgba(2, 6, 23, 0.92)";
-          card.style.boxShadow = "0 12px 30px rgba(0,0,0,0.45)";
-          card.style.padding = "12px";
-
-          const title = document.createElement("div");
-          title.textContent = "Clear log history?";
-          title.style.fontSize = "12px";
-          title.style.fontWeight = "700";
-          title.style.marginBottom = "6px";
-
-          const desc = document.createElement("div");
-          desc.textContent = "This will remove the saved log lines.";
-          desc.style.fontSize = "12px";
-          desc.style.opacity = "0.85";
-          desc.style.marginBottom = "12px";
-
-          const row = document.createElement("div");
-          row.style.display = "flex";
-          row.style.gap = "8px";
-          row.style.justifyContent = "flex-end";
-
-          const cancel = mkBtn("Cancel");
-          const confirm = mkBtn("Clear");
-          confirm.style.background = "rgba(239, 68, 68, 0.25)";
-          confirm.style.border = "1px solid rgba(239, 68, 68, 0.55)";
-
-          cancel.addEventListener("click", () => (modal.style.display = "none"));
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.style.display = "none";
-          });
-
-          card.appendChild(title);
-          card.appendChild(desc);
-          row.appendChild(cancel);
-          row.appendChild(confirm);
-          card.appendChild(row);
-          modal.appendChild(card);
-          root.appendChild(modal);
-
-          // expose confirm button for wiring later
-          modal.__confirmBtn = confirm;
-          return modal;
-        };
-
-        if (!root) {
-          root = document.createElement("div");
-          root.id = ID;
-          ensureStyles(root);
-
-          const header = document.createElement("div");
-          header.style.display = "flex";
-          header.style.alignItems = "center";
-          header.style.justifyContent = "space-between";
-          header.style.padding = "8px 10px";
-          header.style.borderBottom = "1px solid rgba(148, 163, 184, 0.25)";
-          header.style.background = "rgba(2, 6, 23, 0.35)";
-
-          const title = document.createElement("div");
-          title.textContent = "History";
-          title.style.fontSize = "12px";
-          title.style.fontWeight = "600";
-
-          const actions = document.createElement("div");
-          actions.style.display = "flex";
-          actions.style.gap = "8px";
-
-          const clearBtn = mkBtn("Clear");
-          const closeBtn = mkBtn("Close");
-
-          actions.appendChild(clearBtn);
-          actions.appendChild(closeBtn);
-
-          header.appendChild(title);
-          header.appendChild(actions);
-
-          const pre = document.createElement("pre");
-          pre.id = ID + "__pre";
-          pre.style.margin = "0";
-          pre.style.padding = "10px";
-          pre.style.fontSize = "11px";
-          pre.style.lineHeight = "1.35";
-          pre.style.whiteSpace = "pre-wrap";
-          pre.style.wordBreak = "break-word";
-          pre.style.maxHeight = "calc(32vh - 42px)";
-          pre.style.overflow = "auto";
-
-          root.appendChild(header);
-          root.appendChild(pre);
-
-          const modal = ensureModal(root);
-
-          clearBtn.addEventListener("click", () => {
-            modal.style.display = "flex";
-          });
-
-          // Confirm clear: clear UI + tell extension to clear storage
-          modal.__confirmBtn.addEventListener("click", () => {
-            modal.style.display = "none";
-            pre.textContent = "";
-
-            try {
-              chrome.runtime.sendMessage({
-                type: "TEEINBLUE_LOG_CLEAR",
-                key: storageKey
-              });
-            } catch (_) {}
-          });
-
-          closeBtn.addEventListener("click", () => root.remove());
-
-          document.body.appendChild(root);
-        }
-
-        const pre = document.getElementById(ID + "__pre");
-        if (!pre) return;
-
-        pre.textContent = text || "";
-        pre.scrollTop = pre.scrollHeight;
-      }
-    });
+    await renderOverlayOnActiveTab(snapshotText);
   } catch (_) {}
 }
 

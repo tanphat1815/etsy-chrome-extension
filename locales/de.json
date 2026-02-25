@@ -7,8 +7,7 @@
     "api_key": {
       "label": "Teeinblue API-Schlüssel:",
       "placeholder": "API-Schlüssel eingeben",
-      "button_sync": "Synchronisieren",
-      "button_reset": "Cache löschen"
+      "button_sync": "Synchronisieren"
     },
     "not_on_target": {
       "message": "Du bist nicht auf der Bestellseite des Verkäufers bei Etsy.",
@@ -19,6 +18,8 @@
       "note_html": "Daten werden von deiner Etsy-Orders-Seite abgerufen"
     },
     "buttons": {
+      "clear_cache": "Cache löschen",
+      "show_logs": "Logs anzeigen",
       "scan_compare": "Scannen & Vergleichen",
       "sync_all": "Alles synchronisieren"
     },

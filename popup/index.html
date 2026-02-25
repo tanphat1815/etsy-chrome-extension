@@ -43,10 +43,26 @@
           <div class="muted nowrap" data-i18n="popup.api_key.label">Teeinblue API Key:</div>
           <input id="apiKeyInput" type="text" placeholder="Enter API Key" data-i18n-attr="placeholder:popup.api_key.placeholder" />
           <button class="btn btn-secondary" id="submit" type="submit" data-i18n="popup.api_key.button_sync">Check</button>
-          <button class="btn btn-secondary" id="clearCacheBtn" type="button" data-i18n="popup.api_key.button_reset">Clear cache</button>
-          <span></span>
         </div>
         <div id="teeinblueStatus" class="muted status"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" id="clearCacheBtn" type="button" data-i18n="popup.buttons.clear_cache">Clear cache</button>
+          <button class="btn btn-secondary" id="showLogBtn" type="button" data-i18n="popup.buttons.show_logs">Show logs</button>
+        </div>
+
+        <!-- <div class="actions actions--with-menu">
+          <div class="actions__menu">
+            <button id="menuBtn" class="icon-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span class="icon-btn__bars" aria-hidden="true"></span>
+            </button>
+
+            <div id="menuDropdown" class="menu hidden" role="menu" aria-label="More actions">
+              <button class="menu__item btn" id="clearCacheBtn" type="button" data-i18n="popup.buttons.clear_cache" role="menuitem">Clear cache</button>
+              <button class="menu__item btn" id="showLogBtn" type="button" data-i18n="popup.buttons.show_logs" role="menuitem">Show logs</button>
+            </div>
+          </div>
+        </div> -->
+
       </div>
 
       <div id="stateNotOnTarget" class="card hidden">

@@ -1,0 +1,17 @@
+export const ordersWorkerType = {
+  SCAN_START: 'TB_SCAN_START',
+  SCAN_DONE: 'TB_SCAN_DONE',
+  SCAN_CANCEL: 'TB_SCAN_CANCEL',
+  SCAN_GET_STATE: 'TB_SCAN_GET_STATE',
+  SCAN_GET_LAST: 'TB_SCAN_GET_LAST',
+
+  SCAN_NEW_CANDIDATE: 'TB_SCAN_CANDIDATE',
+};
+
+export const popupWorkerType = {
+  OPEN_ETSY_ORDERS_AND_POPUP: 'OPEN_ETSY_ORDERS_AND_POPUP'
+};
+
+export const loggerWorkerType = {
+  LOG_CLEAR: 'LOG_CLEAR'
+};

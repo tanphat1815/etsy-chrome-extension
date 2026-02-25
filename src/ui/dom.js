@@ -6,6 +6,7 @@ export function getDomRefs() {
     apiKeyInput: document.getElementById("apiKeyInput"),
     submitBtn: document.getElementById("submit"),
     resetBtn: document.getElementById("clearCacheBtn"),
+    showLogBtn: document.getElementById("showLogBtn"),
     teeinblueStatus: document.getElementById("teeinblueStatus"),
 
     stateNotOnTarget: document.getElementById("stateNotOnTarget"),
