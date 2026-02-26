@@ -258,6 +258,8 @@ export function createOrdersController ({ app, els, snapshot }) {
         ),
         'muted'
       );
+      els.mainStatus.dataset.i18n = 'status.scanning_progress';
+      els.mainStatus.dataset.i18nVars = JSON.stringify({ processed, total, found: app.orders.length });
       return;
     }
 
@@ -274,6 +276,9 @@ export function createOrdersController ({ app, els, snapshot }) {
         ),
         'error'
       );
+      els.mainStatus.dataset.i18n = 'status.scan_failed';
+      els.mainStatus.dataset.i18nVars = JSON.stringify({ message: job.status });
+
       els.scanBtn.disabled = false;
       scheduleSaveUiSnapshot();
       return;
@@ -289,6 +294,7 @@ export function createOrdersController ({ app, els, snapshot }) {
         t('status.no_orders_need_sync', {}, 'No orders need syncing (based on current extract).'),
         'ok'
       );
+      els.mainStatus.dataset.i18n = 'status.no_orders_need_sync';
       els.syncAllBtn.disabled = true;
     } else {
       setMainStatus(
@@ -300,6 +306,9 @@ export function createOrdersController ({ app, els, snapshot }) {
         ),
         'ok'
       );
+      els.mainStatus.dataset.i18n = 'status.found_orders_need_sync';
+      els.mainStatus.dataset.i18nVars = JSON.stringify({ count: app.orders.length });
+
       els.syncAllBtn.disabled = !app.orders.some(x => x.emailNeedsSync || x.addrNeedsSync);
     }
 
@@ -352,6 +361,8 @@ export function createOrdersController ({ app, els, snapshot }) {
         t('status.api_key_required', {}, 'Please input Teeinblue API Key first.'),
         'error'
       );
+      els.mainStatus.dataset.i18n = 'status.api_key_required';
+      
       return;
     }
 
@@ -373,6 +384,7 @@ export function createOrdersController ({ app, els, snapshot }) {
       ),
       'muted'
     );
+    els.mainStatus.dataset.i18n = 'status.scanning';
 
     clearOrdersList(els.ordersList);
     app.orders = [];
@@ -407,6 +419,8 @@ export function createOrdersController ({ app, els, snapshot }) {
         ),
         'error'
       );
+      els.mainStatus.dataset.i18n = 'status.scan_failed';
+      els.mainStatus.dataset.i18nVars = JSON.stringify({ message: e?.message || String(e) });
     } finally {
       scheduleSaveUiSnapshot();
       els.scanBtn.disabled = false;
@@ -591,6 +605,7 @@ export function createOrdersController ({ app, els, snapshot }) {
       t('status.syncing_all', {}, 'Syncing all orders...'),
       'muted'
     );
+    els.mainStatus.dataset.i18n = 'status.syncing_all';
 
     for (const item of app.orders) {
       if (item.emailNeedsSync || item.addrNeedsSync) {
@@ -603,6 +618,8 @@ export function createOrdersController ({ app, els, snapshot }) {
       t('status.sync_all_completed', {}, 'Sync all completed.'),
       'ok'
     );
+    els.mainStatus.dataset.i18n = 'status.sync_all_completed';
+    
     els.syncAllBtn.disabled = !app.orders.some(
       x => x.emailNeedsSync || x.addrNeedsSync
     );

@@ -28,6 +28,7 @@ export function createConnectController ({ app, els, saveTokenToStorage, saveUiS
       t('status.checking_connection', {}, 'Checking connection ...'),
       'muted'
     );
+    els.teeinblueStatus.dataset.i18n = 'status.checking_connection';
 
     try {
       const res = await checkConnectionByListOrders(app.token);
@@ -38,6 +39,7 @@ export function createConnectController ({ app, els, saveTokenToStorage, saveUiS
       if (res.ok) {
         const text = t('status.connected', {}, 'Connected ✅');
         setTeeinblueStatus(els.teeinblueStatus, text, 'ok');
+        els.teeinblueStatus.dataset.i18n = 'status.connected';
 
         // cache status (avoid re-checking on reopen)
         await writeBootCache({
@@ -54,6 +56,8 @@ export function createConnectController ({ app, els, saveTokenToStorage, saveUiS
           `Not connected ❌ (HTTP ${res.status})`
         );
         setTeeinblueStatus(els.teeinblueStatus, text, 'error');
+        els.teeinblueStatus.dataset.i18n = 'status.not_connected_http';
+        els.teeinblueStatus.dataset.i18nVars = JSON.stringify({ status: res.status });
 
         // cache status (avoid re-checking on reopen)
         await writeBootCache({
@@ -74,6 +78,8 @@ export function createConnectController ({ app, els, saveTokenToStorage, saveUiS
         `Request failed ❌ (${e?.message || String(e)})`
       );
       setTeeinblueStatus(els.teeinblueStatus, text, 'error');
+      els.teeinblueStatus.dataset.i18n = 'status.request_failed';
+      els.teeinblueStatus.dataset.i18nVars = JSON.stringify({ message: e?.message || String(e) });
 
       // cache status (avoid re-checking on reopen)
       await writeBootCache({

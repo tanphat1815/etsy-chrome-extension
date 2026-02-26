@@ -132,7 +132,10 @@ function initLanguageDropdown () {
   };
 
   // init label from select
-  setBtnLabel(select.value);
+  // first init from selected lang in localStorage
+  // if no localStorage, init from select value (default EN)
+  const code = localStorage.getItem('lang') || select.value || 'EN';
+  setBtnLabel(code);
 
   btn.addEventListener('click', (e) => {
     e.preventDefault();
