@@ -24,8 +24,8 @@ export function createSnapshotManager ({ app, els }) {
       ordersHtml: els.ordersList?.innerHTML || '',
       mainStatusText: els.mainStatus?.textContent || '',
       mainStatusClass: els.mainStatus?.className || '',
-      tbStatusText: els.teeinblueStatus?.textContent || '',
       tbStatusClass: els.teeinblueStatus?.className || '',
+      tbStatusDataset: els.teeinblueStatus ? { ...els.teeinblueStatus.dataset } : null,
       syncAllDisabled: !!els.syncAllBtn?.disabled
     });
   }
@@ -46,7 +46,11 @@ export function createSnapshotManager ({ app, els }) {
     if (snap.mainStatusText !== undefined) els.mainStatus.textContent = snap.mainStatusText;
 
     if (snap.tbStatusClass) els.teeinblueStatus.className = snap.tbStatusClass;
-    if (snap.tbStatusText !== undefined) els.teeinblueStatus.textContent = snap.tbStatusText;
+    if (snap.tbStatusDataset !== undefined) {
+      Object.entries(snap.tbStatusDataset).forEach(([key, value]) => {
+        els.teeinblueStatus.dataset[key] = value;
+      });
+    }
 
     if (typeof snap.syncAllDisabled === 'boolean') els.syncAllBtn.disabled = snap.syncAllDisabled;
 
