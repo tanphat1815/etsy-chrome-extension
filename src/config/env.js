@@ -1,5 +1,7 @@
 export const ENV = {
   IS_PRODUCTION: false,
+  USE_MOCK: false, 
+  /** Set USE_MOCK to true to use sample data instead of live Etsy orders */
   
   ETSY: {
     BASE_URL: "https://www.etsy.com",

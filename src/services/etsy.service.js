@@ -6,26 +6,14 @@ import { URLS } from '../config/urls.js';
  */
 
 export function isOnSellerOrdersPage (url) {
-  if (!url) return false;
-  const u = String(url);
+  // if (!url) return false;
+  // const u = String(url);
 
-  const inSellerArea = ENV.ETSY.SELLER_AREA_PREFIXES.some(p => u.startsWith(p));
-  const isOrders = u.includes('/orders');
-  return inSellerArea && isOrders;
+  // const inSellerArea = ENV.ETSY.SELLER_AREA_PREFIXES.some(p => u.startsWith(p));
+  // const isOrders = u.includes('/orders');
+  // return inSellerArea && isOrders;
+  return true;
 }
-// export function isOnSellerOrdersPage (url = '') {
-//   try {
-//     const u = new URL(url);
-//     if (u.hostname !== 'www.etsy.com') return false;
-
-//     // Accept /your/shops/{shop}/orders and optional trailing slash
-//     const path = u.pathname.replace(/\/$/, '');
-//     return /^\/your\/shops\/[^/]+\/orders$/.test(path);
-//   } catch (_) {
-//     return false;
-//   }
-// }
-
 
 /**
  * Etsy Orders Extractor
@@ -105,13 +93,15 @@ function mapToShippingAddress (toAddress, ctx) {
 function parseEtsyContextFromText (text) {
   if (!text) return null;
 
-  const marker = 'Etsy.Context=';
-  const idx = text.indexOf(marker);
-  if (idx < 0) return null;
+  // tolerate spaces: "Etsy.Context = {...}"
+  const re = /Etsy\.Context\s*=\s*/g;
+  const m = re.exec(text);
+  if (!m) return null;
 
-  const start = text.indexOf('{', idx);
+  const start = text.indexOf('{', re.lastIndex);
   if (start < 0) return null;
 
+  // brace matching (safe with strings/escapes)
   let depth = 0;
   let inStr = false;
   let esc = false;
@@ -121,42 +111,56 @@ function parseEtsyContextFromText (text) {
     const ch = text[i];
 
     if (inStr) {
-      if (esc) {
-        esc = false;
-        continue;
-      }
-      if (ch === '\\') {
-        esc = true;
-        continue;
-      }
-      if (ch === '"') {
-        inStr = false;
-        continue;
-      }
+      if (esc) { esc = false; continue; }
+      if (ch === '\\') { esc = true; continue; }
+      if (ch === '"') { inStr = false; continue; }
       continue;
     }
 
-    // not in string
-    if (ch === '"') {
-      inStr = true;
-      continue;
-    }
+    if (ch === '"') { inStr = true; continue; }
     if (ch === '{') depth++;
     if (ch === '}') {
       depth--;
-      if (depth === 0) {
-        end = i + 1; // slice end is exclusive
-        break;
-      }
+      if (depth === 0) { end = i + 1; break; }
     }
   }
 
   if (end < 0) return null;
 
-  const jsonStr = text.slice(start, end);
+  const raw = text.slice(start, end);
+
+  // IMPORTANT: Some saved/copy-pasted HTML introduces real \n/\r/\t inside JSON strings
+  // => JSON.parse fails => escape control chars ONLY when inside double-quoted strings.
+  let out = '';
+  inStr = false;
+  esc = false;
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+
+    if (inStr) {
+      if (esc) { out += ch; esc = false; continue; }
+      if (ch === '\\') { out += ch; esc = true; continue; }
+      if (ch === '"') { out += ch; inStr = false; continue; }
+
+      if (ch === '\n') { out += '\\n'; continue; }
+      if (ch === '\r') { out += '\\r'; continue; }
+      if (ch === '\t') { out += '\\t'; continue; }
+
+      // other ASCII control chars
+      if (ch < ' ') { out += ' '; continue; }
+
+      out += ch;
+      continue;
+    }
+
+    if (ch === '"') inStr = true;
+    out += ch;
+  }
+
   try {
-    return JSON.parse(jsonStr);
-  } catch (e) {
+    return JSON.parse(out);
+  } catch (_) {
     return null;
   }
 }
@@ -209,6 +213,7 @@ function extractOrdersFromContext (ctx) {
     .filter(Boolean);
 }
 
+// used to get sample HTML content of Etsy orders page (for mock extraction during development/testing)
 async function loadSampleEtsyOrdersHtml () {
   const url = chrome.runtime.getURL(ENV.ETSY.SAMPLE_ORDERS_HTML);
   const res = await fetch(url);
@@ -218,104 +223,167 @@ async function loadSampleEtsyOrdersHtml () {
   return await res.text();
 }
 
+// used to get HTML content of active Etsy orders page (for live extraction)
+async function loadEtsyOrdersHtmlFromActiveTab () {
+  const getActiveTab = () =>
+    new Promise((resolve, reject) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        const err = chrome.runtime.lastError;
+        if (err) return reject(new Error(err.message));
+        resolve(tabs?.[0] || null);
+      });
+    });
+
+  const execInTab = tabId =>
+    new Promise((resolve, reject) => {
+      // MV3
+      if (chrome.scripting?.executeScript) {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId, allFrames: false },
+            func: () => document.documentElement.outerHTML
+          },
+          results => {
+            const err = chrome.runtime.lastError;
+            if (err) return reject(new Error(err.message));
+            resolve(String(results?.[0]?.result || ''));
+          }
+        );
+        return;
+      }
+
+      // MV2 fallback
+      chrome.tabs.executeScript(
+        tabId,
+        { code: 'document.documentElement.outerHTML' },
+        results => {
+          const err = chrome.runtime.lastError;
+          if (err) return reject(new Error(err.message));
+          resolve(String(results?.[0] || ''));
+        }
+      );
+    });
+
+  const patchUnresolved = htmlString => {
+    const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+
+    // Remove unresolved attribute if present
+    doc.documentElement?.removeAttribute('unresolved');
+    doc.body?.removeAttribute('unresolved');
+
+    // Remove/neutralize CSS that keeps page hidden while unresolved
+    doc.querySelectorAll('style').forEach(styleEl => {
+      const css = styleEl.textContent || '';
+      if (!css.includes('[unresolved]')) return;
+
+      const nextCss = css
+        .replace(/body\s*\{\s*transition\s*:[^}]*\}\s*/gi, '')
+        .replace(/body\s*\[\s*unresolved\s*\]\s*\{[^}]*\}\s*/gi, '')
+        .replace(/html\s*\[\s*unresolved\s*\]\s*\{[^}]*\}\s*/gi, '');
+
+      if (nextCss.trim()) styleEl.textContent = nextCss;
+      else styleEl.remove();
+    });
+
+    // Final override to ensure visible (keep scripts intact)
+    const override = doc.createElement('style');
+    override.setAttribute('data-offline-fix', 'unresolved-visible');
+    override.textContent = `
+      html[unresolved], body[unresolved] { opacity: 1 !important; overflow: visible !important; }
+      body { opacity: 1 !important; transition: none !important; }
+    `;
+    doc.head?.appendChild(override);
+
+    const hasDoctype = /^\s*<!doctype/i.test(htmlString);
+    return (
+      (hasDoctype ? '' : '<!doctype html>\n') + doc.documentElement.outerHTML
+    );
+  };
+
+  const tab = await getActiveTab();
+  if (!tab?.id) throw new Error('No active tab found');
+
+  const rawHtml = await execInTab(tab.id);
+  if (!rawHtml) throw new Error('Failed to read HTML from active tab');
+
+  return patchUnresolved(rawHtml);
+}
+async function loadEtsyContextFromActiveTab () {
+  const tab = await new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      const err = chrome.runtime.lastError;
+      if (err) return reject(new Error(err.message));
+      resolve(tabs?.[0] || null);
+    });
+  });
+
+  if (!tab?.id) throw new Error('No active tab found');
+
+  const json = await new Promise((resolve, reject) => {
+    if (!chrome.scripting?.executeScript) {
+      return reject(new Error('chrome.scripting.executeScript is not available (need MV3)'));
+    }
+
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tab.id, allFrames: false },
+        func: () => {
+          try {
+            const ctx = window.Etsy?.Context || null;
+            return ctx ? JSON.stringify(ctx) : null;
+          } catch (_) {
+            return null;
+          }
+        }
+      },
+      results => {
+        const err = chrome.runtime.lastError;
+        if (err) return reject(new Error(err.message));
+        resolve(results?.[0]?.result ?? null);
+      }
+    );
+  });
+
+  if (!json) return null;
+
+  try { return JSON.parse(json); } catch (_) { return null; }
+}
+
 /**
  * Mock extractor: parse from the provided HTML string
  * @param {string} htmlString full HTML of Etsy orders page
  */
 export async function extractOrdersMock () {
-  const htmlString = await loadSampleEtsyOrdersHtml();
-  const order_test = {
-    platform_order_id: '6736176349299',
-    shipping_address: {
-      zip: '70000',
-      city: 'Ho Chi Minh City',
+  // 1) LIVE: try read window.Etsy.Context first (reliable)
+  if (!ENV.USE_MOCK) {
+    try {
+      const ctxLive = await loadEtsyContextFromActiveTab();
+      if (ctxLive) return extractOrdersFromContext(ctxLive);
+    } catch (_) {}
+  }
 
-      // name: "Customer One",
-      first_name: 'datnt',
-      last_name: 'hehehe',
+  // 2) MOCK / fallback: parse from HTML string
+  let htmlString = ENV.USE_MOCK
+    ? await loadSampleEtsyOrdersHtml()
+    : await loadEtsyOrdersHtmlFromActiveTab();
 
-      phone: '+84900000001',
-      company: null,
-      country: 'Vietnam',
-      address1: '12 Nguyen Hue',
-      address2: 'District 1',
-      province: null,
+  htmlString = htmlString.replace(/\u0000/g, '');
+  if (!/<!doctype/i.test(htmlString)) htmlString = '<!doctype html>\n' + htmlString;
 
-      // latitude: "10.7758439",
-      // longitude: "106.703626",
-
-      country_code: 'VN',
-      province_code: null
-    },
-    email: 'customer_1@gmail.com'
-  };
   const ctx = parseEtsyContextFromText(htmlString);
-  if (ctx) return [...extractOrdersFromContext(ctx), order_test];
+  console.log('Parsed Etsy.Context from HTML:', ctx);
+  if (ctx) return extractOrdersFromContext(ctx);
 
-  // Fallback: parse DOM then scan scripts
+  // 3) Fallback: parse DOM then scan scripts
   try {
     const doc = new DOMParser().parseFromString(htmlString, 'text/html');
     const scripts = Array.from(doc.querySelectorAll('script'));
     for (const s of scripts) {
       const t = s.textContent || '';
       const ctx2 = parseEtsyContextFromText(t);
-      if (ctx2) return [...extractOrdersFromContext(ctx2), order_test];
+      if (ctx2) return extractOrdersFromContext(ctx2);
     }
   } catch (_) {}
 
-  return [order_test];
-}
-
-/**
- * Live extractor: run on Etsy orders page when user open extension
- * @param {Document} doc window.document
- * @param {Window} win window
- */
-export function extractOrders (doc = document, win = window) {
-  // 1) If Etsy.Context already available on window
-  const ctxWin = win?.Etsy?.Context;
-  if (ctxWin?.data?.initial_data?.orders) {
-    return extractOrdersFromContext(ctxWin);
-  }
-
-  // 2) Fallback => Parse from inline scripts
-  const scripts = Array.from(doc.querySelectorAll('script'));
-  for (const s of scripts) {
-    const t = s.textContent || '';
-    if (!t.includes('Etsy.Context=')) continue;
-    const ctx = parseEtsyContextFromText(t);
-    if (ctx) return extractOrdersFromContext(ctx);
-  }
-
-  // 3) Last resort (weak): find order ids from links (email/address likely not present)
-  const orderIds = new Set();
-  for (const a of Array.from(doc.querySelectorAll('a[href]'))) {
-    const href = a.getAttribute('href') || '';
-    const m1 = href.match(/\/your\/orders\/(\d+)/);
-    const m2 = href.match(/[?&]order_id=(\d+)/);
-    const id = (m1 && m1[1]) || (m2 && m2[1]);
-    if (id) orderIds.add(String(id));
-  }
-
-  return Array.from(orderIds).map(id => ({
-    platform_order_id: id,
-    shipping_address: {
-      zip: null,
-      city: null,
-      name: null,
-      phone: null,
-      company: null,
-      country: null,
-      address1: null,
-      address2: null,
-      latitude: null,
-      province: null,
-      last_name: null,
-      longitude: null,
-      first_name: null,
-      country_code: null,
-      province_code: null
-    },
-    email: null
-  }));
+  return [];
 }

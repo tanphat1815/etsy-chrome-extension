@@ -22,6 +22,7 @@
   "host_permissions": [
     "https://www.etsy.com/*",
     "https://staging-api.teeinblue.com/*",
-    "https://api.teeinblue.com/*"
+    "https://api.teeinblue.com/*",
+    "http://localhost:3000/*"
   ]
 }
