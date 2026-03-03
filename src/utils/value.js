@@ -9,7 +9,12 @@ export function isPlainObject(v) {
 }
 
 export function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
+  const value = String(email ?? '').trim().toLowerCase();
+  if (!value) return '';
+
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+  return re.test(value) ? value : '';
 }
 
 export function normalizeScalar(v) {
