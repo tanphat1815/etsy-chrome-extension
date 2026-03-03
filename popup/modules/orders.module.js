@@ -9,7 +9,7 @@ import {
 } from '../../src/ui/renderer.js';
 import { ordersWorkerType } from '../../src/constants/serviceWorkers.schema.js';
 
-import { extractOrdersMock } from '../../src/services/etsy.service.js';
+import { extractOrders } from '../../src/services/etsy.service.js';
 import { updateEtsyOrderById } from '../../src/services/teeinblue.service.js';
 
 import { recomputeNeedSyncFromTB, buildUpdatePayload } from '../../src/controllers/sync.controller.js';
@@ -380,7 +380,7 @@ export function createOrdersController ({ app, els, snapshot }) {
       t(
         'status.scanning',
         {},
-        'Scanning Etsy (mock) and comparing with Teeinblue...'
+        'Scanning Etsy and comparing with Teeinblue...'
       ),
       'muted'
     );
@@ -393,7 +393,7 @@ export function createOrdersController ({ app, els, snapshot }) {
     ordersById.clear();
 
     try {
-      const extracted = await extractOrdersMock();
+      const extracted = await extractOrders();
       console.log('Orders extracted from Etsy:', extracted);
 
       const started = await chrome.runtime.sendMessage({

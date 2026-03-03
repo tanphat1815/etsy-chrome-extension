@@ -1,12 +1,12 @@
 export const ENV = {
-  IS_PRODUCTION: false,
+  IS_PRODUCTION: true,
   USE_MOCK: false, 
   /** Set USE_MOCK to true to use sample data instead of live Etsy orders */
   
   ETSY: {
     BASE_URL: "https://www.etsy.com",
-    SELLER_ORDERS_PATH: "/your/shops/me/orders",
-    SELLER_AREA_PREFIXES: ["https://www.etsy.com/your/shops/"],
+    SELLER_ORDERS_PATH: "/your/orders/sold/new",
+    SELLER_AREA_PREFIXES: ["https://www.etsy.com/your"],
     SAMPLE_ORDERS_HTML: "samples/sample_etsy_orders.html"
   },
 

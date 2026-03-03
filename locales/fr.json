@@ -54,11 +54,11 @@
   },
   "status": {
     "api_key_required": "Veuillez d’abord saisir la clé API Teeinblue.",
-    "checking_connection": "Vérification de la connexion (commandes de staging)...",
+    "checking_connection": "Vérification de la connexion (commandes de extractOrders)...",
     "connected": "Connecté ✅",
     "not_connected_http": "Non connecté ❌ (HTTP {{status}})",
     "request_failed": "Requête échouée ❌ ({{message}})",
-    "scanning": "Analyse d’Etsy (mock) et comparaison avec Teeinblue...",
+    "scanning": "Analyse d’Etsy et comparaison avec Teeinblue...",
     "no_orders_need_sync": "Aucune commande à synchroniser (selon les données extraites actuelles).",
     "found_orders_need_sync": "{{count}} commande(s) à synchroniser trouvée(s).",
     "scan_failed": "Analyse échouée : {{message}}",

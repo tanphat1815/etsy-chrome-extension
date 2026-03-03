@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Etsy → Teeinblue Sync (Staging)",
+  "name": "Etsy → Teeinblue Sync  ",
   "version": "1.0.1",
   "description": "Compare Etsy extracted order info vs Teeinblue; sync missing/different email + address",
   "action": {

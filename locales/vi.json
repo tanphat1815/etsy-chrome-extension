@@ -53,11 +53,11 @@
   },
   "status": {
     "api_key_required": "Vui lòng nhập Teeinblue API Key trước.",
-    "checking_connection": "Đang kiểm tra kết nối (staging orders)...",
+    "checking_connection": "Đang kiểm tra kết nối (extractOrders orders)...",
     "connected": "Đã kết nối ✅",
     "not_connected_http": "Chưa kết nối ❌ (HTTP {{status}})",
     "request_failed": "Request thất bại ❌ ({{message}})",
-    "scanning": "Đang quét Etsy (mock) và so sánh với Teeinblue...",
+    "scanning": "Đang quét Etsy và so sánh với Teeinblue...",
     "no_orders_need_sync": "Không có order nào cần đồng bộ (theo dữ liệu extract hiện tại).",
     "found_orders_need_sync": "Tìm thấy {{count}} order cần đồng bộ.",
     "scan_failed": "Quét thất bại: {{message}}",

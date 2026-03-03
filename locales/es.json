@@ -53,11 +53,11 @@
   },
   "status": {
     "api_key_required": "Por favor, introduce primero la clave API de Teeinblue.",
-    "checking_connection": "Comprobando la conexión (pedidos de staging)...",
+    "checking_connection": "Comprobando la conexión (pedidos de extractOrders)...",
     "connected": "Conectado ✅",
     "not_connected_http": "No conectado ❌ (HTTP {{status}})",
     "request_failed": "Solicitud fallida ❌ ({{message}})",
-    "scanning": "Escaneando Etsy (mock) y comparando con Teeinblue...",
+    "scanning": "Escaneando Etsy y comparando con Teeinblue...",
     "no_orders_need_sync": "No hay pedidos que necesiten sincronización (según los datos extraídos actuales).",
     "found_orders_need_sync": "Se han encontrado {{count}} pedidos que necesitan sincronización.",
     "scan_failed": "Escaneo fallido: {{message}}",

@@ -6,7 +6,7 @@ import { readResponseBody } from '../utils/http.js';
  */
 
 /**
- * Check token by fetching "list orders" (staging).
+ * Check token by fetching "list orders"  .
  * @param {string} token Bearer token (raw)
  * @returns {Promise<{ok: boolean, status: number, data: any}>}
  */
@@ -24,7 +24,7 @@ export async function checkConnectionByListOrders (token) {
 }
 
 /**
- * Get order by Etsy platform_order_id (staging).
+ * Get order by Etsy platform_order_id  .
  * @param {string} token Bearer token (raw)
  * @param {string} platformOrderId Etsy order id
  * @returns {Promise<{ok: boolean, status: number, data: any}>}
@@ -43,7 +43,7 @@ export async function getEtsyOrderById (token, platformOrderId) {
 }
 
 /**
- * Update Etsy order by platform_order_id (staging).
+ * Update Etsy order by platform_order_id  .
  *
  * @param {string} token Bearer token (raw)
  * @param {string} platformOrderId Etsy order id

@@ -53,11 +53,11 @@
   },
   "status": {
     "api_key_required": "Bitte zuerst den Teeinblue API-Schlüssel eingeben.",
-    "checking_connection": "Verbindung wird geprüft (Staging-Bestellungen)...",
+    "checking_connection": "Verbindung wird geprüft (Bestellungen)...",
     "connected": "Verbunden ✅",
     "not_connected_http": "Nicht verbunden ❌ (HTTP {{status}})",
     "request_failed": "Anfrage fehlgeschlagen ❌ ({{message}})",
-    "scanning": "Etsy (Mock) wird gescannt und mit Teeinblue verglichen...",
+    "scanning": "Etsy wird gescannt und mit Teeinblue verglichen...",
     "no_orders_need_sync": "Keine Bestellungen müssen synchronisiert werden (basierend auf den aktuellen Extract-Daten).",
     "found_orders_need_sync": "{{count}} Bestellungen zum Synchronisieren gefunden.",
     "scan_failed": "Scan fehlgeschlagen: {{message}}",

@@ -9,13 +9,13 @@ export const URLS = {
   },
 
   TEEINBLUE: {
-    // Connect check (staging)
+    // Connect check  
     HEALTH_BY_LIST_ORDERS: `${getBaseTeeinblueUrl()}/openapi/v1/orders/etsy`,
 
-    // GET order by id (staging)
+    // GET order by id  
     GET_ORDER_BY_ID: (platformOrderId) =>
       `${getBaseTeeinblueUrl()}/openapi/v1/orders/etsy/${encodeURIComponent(platformOrderId)}`,
-    // PUT update (staging)
+    // PATCH update  
     UPDATE_ORDER_BY_ID: (platformOrderId) =>
       `${getBaseTeeinblueUrl()}/openapi/v1/orders/etsy/${encodeURIComponent(platformOrderId)}`
   }
