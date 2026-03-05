@@ -49,6 +49,9 @@
     "actions": {
       "show_full_address": "▸ Vollständige Adresse anzeigen",
       "hide_full_address": "▾ Adresse ausblenden"
+    },
+    "disabled": {
+      "sync": "Sync deaktiviert (erfüllt oder storniert)"
     }
   },
   "status": {
@@ -59,7 +62,7 @@
     "request_failed": "Anfrage fehlgeschlagen ❌ ({{message}})",
     "scanning": "Etsy wird gescannt und mit Teeinblue verglichen...",
     "no_orders_need_sync": "Keine Bestellungen müssen synchronisiert werden (basierend auf den aktuellen Extract-Daten).",
-    "found_orders_need_sync": "{{count}} Bestellungen zum Synchronisieren gefunden.",
+    "found_orders_need_sync": "{{count}} mismatched order(s), {{needSync}} can be synced.",
     "scan_failed": "Scan fehlgeschlagen: {{message}}",
     "syncing_all": "Alle Bestellungen werden synchronisiert...",
     "sync_all_completed": "Alle Bestellungen wurden synchronisiert.",

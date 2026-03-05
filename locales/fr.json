@@ -7,8 +7,7 @@
     "api_key": {
       "label": "Clé API Teeinblue :",
       "placeholder": "Saisir la clé API",
-      "button_sync": "Synchroniser",
-      "button_reset": "Effacer le cache"
+      "button_sync": "Synchroniser"
     },
     "not_on_target": {
       "message": "Vous n’êtes pas sur la page des commandes du vendeur sur Etsy.",
@@ -50,6 +49,9 @@
     "actions": {
       "show_full_address": "▸ Afficher l’adresse complète",
       "hide_full_address": "▾ Masquer l’adresse"
+    },
+    "disabled": {
+      "sync": "Synchronisation désactivée (remplie ou annulée)"
     }
   },
   "status": {
@@ -60,7 +62,7 @@
     "request_failed": "Requête échouée ❌ ({{message}})",
     "scanning": "Analyse d’Etsy et comparaison avec Teeinblue...",
     "no_orders_need_sync": "Aucune commande à synchroniser (selon les données extraites actuelles).",
-    "found_orders_need_sync": "{{count}} commande(s) à synchroniser trouvée(s).",
+    "found_orders_need_sync": "{{count}} commande(s) avec des différences, {{needSync}} peuvent être synchronisées.",
     "scan_failed": "Analyse échouée : {{message}}",
     "syncing_all": "Synchronisation de toutes les commandes...",
     "sync_all_completed": "Toutes les commandes ont été synchronisées.",

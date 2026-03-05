@@ -8,7 +8,9 @@ export default [
       'samples/**',
       'locales/**',
       'node_modules/**',
-      'package-lock.json'
+      'package-lock.json',
+      'dist/**',
+      'extension.zip'
     ]
   },
 

@@ -49,6 +49,9 @@
     "actions": {
       "show_full_address": "▸ Hiển thị đầy đủ địa chỉ",
       "hide_full_address": "▾ Ẩn địa chỉ"
+    },
+    "disabled": {
+      "sync": "Đồng bộ bị vô hiệu hóa (đã hoàn thành hoặc hủy đơn)"
     }
   },
   "status": {
@@ -59,7 +62,7 @@
     "request_failed": "Request thất bại ❌ ({{message}})",
     "scanning": "Đang quét Etsy và so sánh với Teeinblue...",
     "no_orders_need_sync": "Không có order nào cần đồng bộ (theo dữ liệu extract hiện tại).",
-    "found_orders_need_sync": "Tìm thấy {{count}} order cần đồng bộ.",
+    "found_orders_need_sync": "Tìm thấy {{count}} order khác thông tin, {{needSync}} có thể được đồng bộ.",
     "scan_failed": "Quét thất bại: {{message}}",
     "syncing_all": "Đang đồng bộ tất cả orders...",
     "sync_all_completed": "Đã đồng bộ xong tất cả.",

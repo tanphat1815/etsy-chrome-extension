@@ -5,7 +5,7 @@ import { URLS } from '../config/urls.js';
  * Page detection, redirect, extraction placeholder.
  */
 
-export function isOnSellerOrdersPage (url, check = true) {
+export function isOnSellerOrdersPage (url, check = false) {
   if(!check) return true; // skip checking
 
   if (!url) return false;

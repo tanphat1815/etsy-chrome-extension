@@ -54,6 +54,8 @@ export function buildAddressOverride(tbAddress, extractedAddress) {
  * @param {any} tbData Teeinblue order payload
  * @param {{email: string, shipping_address: object}} extracted Etsy extracted order
  * @returns {{
+ *   financialStatus: string,
+ *   status: string,
  *   tbEmail: string,
  *   emailNeedsSync: boolean,
  *   addrNeedsSync: boolean,
@@ -74,6 +76,8 @@ export function recomputeNeedSyncFromTB(tbData, extracted) {
   const addrNeedsSync = diffKeys.length > 0;
 
   return {
+    financialStatus: tbData?.financial_status || "",
+    status: tbData?.status || "",
     tbEmail,
     tbAddress,
     emailNeedsSync,

@@ -97,6 +97,10 @@ async function runScanJob(jobId) {
             const candidate = {
               platform_order_id: platformId,
 
+              // status from TB
+              tbFinancialStatus: computed.financialStatus,
+              tbStatus: computed.status,
+
               // extracted (etsy)
               email: ex.email,
               shipping_address: ex.shipping_address,

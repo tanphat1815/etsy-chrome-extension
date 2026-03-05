@@ -97,3 +97,23 @@ export async function clearUiSnapshots () {
     return { ok: false, error: String(e) };
   }
 }
+
+
+export function saveAppStateToStorage (app, storageKey) {
+  if (!storageKey) return Promise.reject(new Error('Storage key is required'));
+
+  const data = {
+    tokenFp: tokenFingerprint(app.token),
+    connected: app.connected,
+    pageKey: app.pageKey,
+    orders: app.orders
+  };
+
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.set({ [storageKey]: data }, () => resolve());
+    } catch (_) {
+      resolve();
+    }
+  });
+}

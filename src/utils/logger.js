@@ -47,6 +47,16 @@ function storageSet(obj) {
   });
 }
 
+async function storageRemove(keys) {
+  return new Promise((resolve) => {
+    try {
+      STORAGE.remove(keys, () => resolve());
+    } catch (_) {
+      resolve();
+    }
+  });
+}
+
 async function readLogs() {
   const v = await storageGet(LOGS_KEY);
   return Array.isArray(v) ? v : [];
@@ -114,8 +124,9 @@ async function renderOverlayOnActiveTab(snapshotText) {
       const formatLineHtml = (line) => {
         // Expected format:
         // [HH:mm:ss] orderId | email: <status> | address: <status>
+        // Optional message at the end: | message: <text>
         const m = String(line || "").match(
-          /^\[(\d{2}:\d{2}:\d{2})\]\s+(.+?)\s+\|\s+email:\s+(\S+)\s+\|\s+address:\s+(\S+)\s*$/
+          /^\[(\d{2}:\d{2}:\d{2})\]\s+(.+?)\s+\|\s+email:\s+(\S+)\s+\|\s+address:\s+(\S+)(?:\s+\|\s+message:\s+([\s\S]*))?\s*$/
         );
 
         if (!m) {
@@ -126,6 +137,7 @@ async function renderOverlayOnActiveTab(snapshotText) {
         const orderId = m[2];
         const emailStatus = normStatus(m[3]);
         const addrStatus = normStatus(m[4]);
+        const message = (m[5] || "").trim();
         const kind = lineKind(emailStatus, addrStatus);
 
         return `
@@ -142,6 +154,11 @@ async function renderOverlayOnActiveTab(snapshotText) {
               <span class="tb-log-k">address:</span>
               <span class="tb-log-status tb-log-status--${addrStatus}">${escapeHtml(addrStatus)}</span>
             </span>
+            ${message ? `
+              <div class="tb-log-message">
+                <span class="tb-log-message-text">${escapeHtml(message)}</span>
+              </div>
+            ` : ''}
           </div>
         `;
       };
@@ -186,6 +203,7 @@ async function renderOverlayOnActiveTab(snapshotText) {
 
         confirm.addEventListener("click", () => {
           modal.style.display = "none";
+          // await storageRemove(storageKey);
           onClear();
         });
 
@@ -212,8 +230,8 @@ async function renderOverlayOnActiveTab(snapshotText) {
         const title = mk("div", "tb-log-title", "History");
         const actions = mk("div", "tb-log-actions");
 
-        const clearBtn = mk("button", "tb-log-btn", "Clear");
-        const closeBtn = mk("button", "tb-log-btn", "Close");
+        const clearBtn = mk("button", "tb-log-btn tb-log-clear", "Clear");
+        const closeBtn = mk("button", "tb-log-btn tb-log-close", "Close");
 
         actions.appendChild(clearBtn);
         actions.appendChild(closeBtn);
@@ -287,9 +305,16 @@ export async function appendLogToPage(line) {
  * @param {string} orderId
  * @param {"ok"|"need-sync"|"failed"|"skip"} emailStatus
  * @param {"ok"|"need-sync"|"failed"|"skip"} addressStatus
+ * @param {{"message": string}} error
  */
-export function syncLog(orderId, emailStatus, addressStatus) {
-  const line = `[${nowTS()}] ${orderId} | email: ${emailStatus} | address: ${addressStatus}`;
+export function syncLog(orderId, emailStatus, addressStatus, error = '') {
+  let line = `[${nowTS()}] ${orderId} | email: ${emailStatus} | address: ${addressStatus}`;
+
+  const message = error?.message || error;
+  if (message) {
+    line += ` | message: ${String(message).trim()}`;
+  }
+
   console.log(line);
   appendLogToPage(line);
 }

@@ -11,6 +11,9 @@
   --tb-icon-btn-bg: rgba(2, 6, 23, 0.06);
   --tb-icon-btn-bg-hover: rgba(2, 6, 23, 0.10);
   --tb-icon-btn-border: rgba(0, 0, 0, 0.12);
+
+  --tb-bg-disabled: rgba(245, 245, 245);
+  --tb-text-disabled: rgba(107, 107, 107);
 }
 
 body {
@@ -189,6 +192,12 @@ input:focus {
   margin-top: 10px;
 }
 
+.order.disabled {
+  background-color: var(--tb-bg-disabled);
+  color: var(--tb-text-disabled);
+  cursor: not-allowed;
+}
+
 .order-header {
   display: flex;
   justify-content: space-between;
@@ -231,6 +240,10 @@ input:focus {
   color: #374151;
 }
 
+.disabled .label {
+  color: var(--tb-text-disabled);
+}
+
 .value {
   flex: 1;
   word-break: break-word;
@@ -258,13 +271,63 @@ input:focus {
   color: #065f46;
 }
 
+.disabled .pill.error {
+  border-color: #f3d1d1;
+  background-color: #fcf1f1;
+  color: #d19a9a;
+}
+
+.disabled .pill.ok {
+  border-color: #cfe9d8;
+  background-color: #f2fbf5;
+  color: #8eb7a1;
+}
+
 .orderActions {
-  display: flex;
+  display: inline-flex;
+  align-items: flex-end;
   gap: 8px;
 }
 
 .orderActions button {
   flex: 1;
+  width: fit-content;
+}
+
+.tooltip {
+  position: relative;
+  transform: translate(0px, calc(-100% - 5px));
+  min-width: max-content;
+  max-width: 220px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+  z-index: 20;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 20px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+.disabled .orderActions:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .small {
@@ -293,6 +356,10 @@ input:focus {
   color: #b91c1c;
 }
 
+.disabled .diff-list li {
+  color: #d19a9a;
+}
+
 .btn-link {
   background: none;
   border: none;
@@ -301,6 +368,11 @@ input:focus {
   font-size: 12px;
   color: #2563eb;
   cursor: pointer;
+}
+
+.disabled .btn-link {
+  color: #a1c4fd;
+  cursor: not-allowed;
 }
 
 /* ===== Toolbar + Hamburger menu ===== */

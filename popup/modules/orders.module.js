@@ -217,6 +217,14 @@ export function createOrdersController ({ app, els, snapshot }) {
     applyDictionary(card);
   }
 
+  function countOrdersNeedSync (app) {
+    return (app.orders || [])
+      .filter(x => 
+        (x.emailNeedsSync || x.addrNeedsSync)
+        && !['fulfilled', 'canceled'].includes(x.tbFinancialStatus)
+      ).length;
+  }
+
   async function stopScanPoll () {
     if (scanPollTimer) {
       clearInterval(scanPollTimer);
@@ -254,7 +262,7 @@ export function createOrdersController ({ app, els, snapshot }) {
         t(
           'status.scanning_progress',
           { processed, total, found: app.orders.length },
-          `Scanning... (${processed}/${total}) | Found: ${app.orders.length}`
+          `Scanning... (${processed}/${total}) | Found: ${app.orders.length} Teeinblue's order(s)`
         ),
         'muted'
       );
@@ -288,7 +296,10 @@ export function createOrdersController ({ app, els, snapshot }) {
     appendNewCandidates(job.candidates || []);
     scheduleSaveUiSnapshot();
 
-    if (!app.orders.length) {
+    const totalFound = app.orders.length;
+    const needSyncCount = countOrdersNeedSync(app);
+
+    if (!totalFound) {
       setMainStatus(
         els.mainStatus,
         t('status.no_orders_need_sync', {}, 'No orders need syncing (based on current extract).'),
@@ -301,15 +312,15 @@ export function createOrdersController ({ app, els, snapshot }) {
         els.mainStatus,
         t(
           'status.found_orders_need_sync',
-          { count: app.orders.length },
-          `Found ${app.orders.length} order(s) needing sync.`
+          { count: totalFound, needSync: needSyncCount },
+          `Found ${totalFound} mismatched order(s), ${needSyncCount} can be synced.`
         ),
         'ok'
       );
       els.mainStatus.dataset.i18n = 'status.found_orders_need_sync';
-      els.mainStatus.dataset.i18nVars = JSON.stringify({ count: app.orders.length });
+      els.mainStatus.dataset.i18nVars = JSON.stringify({ count: totalFound, needSync: needSyncCount });
 
-      els.syncAllBtn.disabled = !app.orders.some(x => x.emailNeedsSync || x.addrNeedsSync);
+      els.syncAllBtn.disabled = !needSyncCount;
     }
 
     els.scanBtn.disabled = false;
@@ -472,7 +483,8 @@ export function createOrdersController ({ app, els, snapshot }) {
       syncLog(
         platformOrderId,
         payload.email ? 'failed' : 'skip',
-        payload.shipping_address ? 'failed' : 'skip'
+        payload.shipping_address ? 'failed' : 'skip',
+        { message: putRes.data.message }
       );
       setOrderLocalStatus(
         platformOrderId,

@@ -49,6 +49,9 @@
     "actions": {
       "show_full_address": "▸ Mostrar endereço completo",
       "hide_full_address": "▾ Ocultar endereço"
+    },
+    "disabled": {
+      "sync": "Sincronização desabilitada (cumprida ou cancelada)"
     }
   },
   "status": {
@@ -59,7 +62,7 @@
     "request_failed": "Pedido falhou ❌ ({{message}})",
     "scanning": "A analisar o Etsy e a comparar com o Teeinblue...",
     "no_orders_need_sync": "Não há encomendas que precisem de sincronização (com base nos dados extraídos atuais).",
-    "found_orders_need_sync": "Foram encontradas {{count}} encomendas que precisam de sincronização.",
+    "found_orders_need_sync": "Foram encontradas {{count}} encomendas com diferenças, {{needSync}} podem ser sincronizadas.",
     "scan_failed": "Análise falhou: {{message}}",
     "syncing_all": "A sincronizar todas as encomendas...",
     "sync_all_completed": "Todas as encomendas foram sincronizadas.",

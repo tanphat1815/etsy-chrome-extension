@@ -55,9 +55,16 @@ export function updateAddressCompareTable(platformOrderId, etsyAddr = {}, tbAddr
  * @returns {HTMLElement}
  */
 export function renderOrderCard(item, onSyncClick) {
+  const disableSync =
+    (!item.emailNeedsSync && !item.addrNeedsSync) ||
+    ['fulfilled', 'canceled'].includes(item.tbFinancialStatus);
+
   const wrap = document.createElement("div");
   wrap.className = "order";
   wrap.dataset.id = item.platform_order_id;
+  wrap.dataset.financialStatus = item.tbFinancialStatus || "";
+  wrap.dataset.status = item.tbStatus || "";
+  if (disableSync) wrap.classList.add("disabled");
 
   const emailKey = item.emailNeedsSync ? "orders.pills.email_override" : "orders.pills.email_ok";
   const addrKey = item.addrNeedsSync ? "orders.pills.address_override" : "orders.pills.address_ok";
@@ -71,12 +78,17 @@ export function renderOrderCard(item, onSyncClick) {
         <span class="value">#${item.platform_order_id}</span>
       </div>
       <div class="orderActions">
+        ${disableSync ? `
+          <div class="tooltip" data-role="sync-tooltip" data-i18n="orders.disabled.sync">
+            Sync disabled (fulfilled or canceled)
+          </div>
+        ` : ''}
         <button
           class="btn btn-primary"
           type="button"
           data-role="btn-sync"
           data-i18n="orders.buttons.sync"
-          ${(!item.emailNeedsSync && !item.addrNeedsSync) ? "disabled" : ""}
+          ${disableSync ? "disabled" : ""}
         >
           Sync
         </button>

@@ -14,16 +14,22 @@ import { createSnapshotManager } from './modules/snapshot.module.js';
 import { createConnectController } from './modules/connect.module.js';
 import { createOrdersController } from './modules/orders.module.js';
 
-const STORAGE_KEY = 'teeinblueApiKey';
+import { configs } from '../src/constants/configs.schema.js';
+
+const STORAGE_KEY = configs.STORAGE_KEY.TB_API_KEY;
+const APP_KEY = configs.STORAGE_KEY.APP_KEY;
 
 const els = getDomRefs();
 
-const app = {
-  token: '',
-  connected: false,
-  orders: [], // items currently rendered + their sync state
-  pageKey: ''
-};
+// fetch persisted app state from chrome storage;
+const app = chrome.storage.session.get(APP_KEY)
+  .then(res => res?.[APP_KEY])
+  .then(stored => stored || {
+    token: '',
+    connected: false,
+    orders: [], // items currently rendered + their sync state
+    pageKey: ''
+  });
 
 window.app = app; // for debug, NÀO XONG NHỚ NHẮC T XOÁ CÁI NÀY :v
 

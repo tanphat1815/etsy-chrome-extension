@@ -49,6 +49,9 @@
     "actions": {
       "show_full_address": "▸ Show full address",
       "hide_full_address": "▾ Hide full address"
+    },
+    "disabled": {
+      "sync": "Sync disabled (fulfilled or canceled)"
     }
   },
   "status": {
@@ -59,7 +62,7 @@
     "request_failed": "Request failed ❌ ({{message}})",
     "scanning": "Scanning Etsy and comparing with Teeinblue...",
     "no_orders_need_sync": "No orders need syncing (based on current extract).",
-    "found_orders_need_sync": "Found {{count}} order(s) needing sync.",
+    "found_orders_need_sync": "Found {{count}} mismatched order(s), {{needSync}} can be synced.",
     "scan_failed": "Scan failed: {{message}}",
     "syncing_all": "Syncing all orders...",
     "sync_all_completed": "Sync all completed.",
