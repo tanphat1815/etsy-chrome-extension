@@ -3,7 +3,7 @@ import { applyDictionary, setTeeinblueStatus } from '../src/ui/renderer.js';
 
 import { popupWorkerType } from '../src/constants/serviceWorkers.schema.js';
 
-import { readBootCache, writeBootCache, tokenFingerprint } from '../src/cache/index.cache.js';
+import { readBootCache, writeBootCache, tokenFingerprint, readUiSnapshot } from '../src/cache/index.cache.js';
 
 import { openLog } from '../src/utils/logger.js';
 
@@ -17,21 +17,17 @@ import { createOrdersController } from './modules/orders.module.js';
 import { configs } from '../src/constants/configs.schema.js';
 
 const STORAGE_KEY = configs.STORAGE_KEY.TB_API_KEY;
-const APP_KEY = configs.STORAGE_KEY.APP_KEY;
 
 const els = getDomRefs();
 
 // fetch persisted app state from chrome storage;
-const app = chrome.storage.session.get(APP_KEY)
-  .then(res => res?.[APP_KEY])
-  .then(stored => stored || {
-    token: '',
-    connected: false,
-    orders: [], // items currently rendered + their sync state
-    pageKey: ''
-  });
-
-window.app = app; // for debug, NÀO XONG NHỚ NHẮC T XOÁ CÁI NÀY :v
+let app = {
+  token: '',
+  connected: false,
+  orders: [], // items currently rendered + their sync state
+  pageKey: ''
+};
+window.app = app;
 
 // 1) i18n: applyDictionary for the whole popup on dictionary change
 registerDictionaryUpdatedListener({ applyDictionary });
@@ -281,6 +277,19 @@ window.addEventListener('pagehide', () => {
         cache.teeinblueStatus.kind || 'muted'
       );
     }
+
+    // restore app state after 
+    app = await readUiSnapshot(ctx.pageKey)
+      .then(res => res.json())
+      .then(stored => {
+        return {
+          token: stored.token || '',
+          connected: stored.connected || false,
+          orders: stored.orders, // items currently rendered + their sync state
+          pageKey: stored.pageKey || ''
+        };
+      })
+      .catch(() => app); // fallback to default app state if any error
     await snapshot.saveUiSnapshot();
     return;
   }

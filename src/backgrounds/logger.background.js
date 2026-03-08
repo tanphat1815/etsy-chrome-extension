@@ -6,7 +6,7 @@ const STORAGE_KEY = configs.STORAGE_KEY.LOG_LINES;
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === loggerWorkerType.LOG_CLEAR) {
     const key = msg.key || STORAGE_KEY;
-    const STORAGE = chrome.storage.session || chrome.storage.local;
+    const STORAGE = chrome.storage.local || chrome.storage.session;
     STORAGE.remove([key]);
   }
 });
